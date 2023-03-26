@@ -1,0 +1,44 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model IamwebOrderInfo{
+
+  id Int @default(autoincrement()) @id
+  createdAt  DateTime   @default(now())
+  updated DateTime @updatedAt
+
+  iamwebOrderId String @unique
+  googleLineNumber Int
+  status String
+  infoData String
+}
+
+model DispatchInfo{
+  id Int @default(autoincrement()) @id
+  createdAt  DateTime   @default(now())
+  updated DateTime @updatedAt
+
+  iamwebOrderInfoId Int
+  googleLineNumber Int
+  status String
+  infoData String
+}
+
+model LineNumber{
+  id Int @default(autoincrement()) @id
+
+  iamwebOrderInfoLineNumber Int @default(5)
+  iamwebOrderInfoLogLineNumber Int @default(5)
+  
+  dispatchInfoLineNumber Int @default(5)
+  dispatchInfoLogLineNumber Int @default(5)
+}
