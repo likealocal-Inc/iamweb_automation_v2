@@ -2,7 +2,6 @@ import { FileUtil } from './files.utils';
 
 export class LogUtil {
   // 로그파일 저장 경로
-  filePath = './files';
   file: FileUtil;
   constructor() {
     this.file = new FileUtil();
@@ -12,8 +11,8 @@ export class LogUtil {
    * @param data
    * @param fileName
    */
-  async save(data: string, fileName: string) {
-    await this.file.write(this.filePath, fileName, data + '\n');
+  async save(path: string, fileName: string, data: string) {
+    await this.file.write(path, fileName, `${data}\n`);
   }
 
   /**
@@ -21,7 +20,7 @@ export class LogUtil {
    * @param path
    * @returns
    */
-  async getLogFileList() {
-    return await this.file.getFiles(this.filePath);
+  async getLogFileList(path) {
+    return await this.file.getFiles(path);
   }
 }

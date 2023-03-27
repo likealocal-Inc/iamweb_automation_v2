@@ -12,6 +12,7 @@ import { PrismaService } from '../../config/prisma/prisma.service';
 import { AutomationDBUtils } from './automation.db.utils';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { DispatchStatus } from '../modes/dispatch.status';
+import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 
 const GOOGLE_SHEET_IAMWEB_ORDER_ID = process.env.GOOGLE_SHEET_IAMWEB_ORDER_ID;
 const GOOGLE_SHEET_DISPATCH_ID = process.env.GOOGLE_SHEET_DISPATCH_ID;
@@ -88,50 +89,59 @@ export class AutomationSchedulerUtils {
     ];
   }
 
+  __getGoogleSheetRange(lineNumber: number, range: any) {
+    return { cellNumber: lineNumber, start: range.start, end: range.end };
+  }
+
   /**
    * 아임웹 라인 범위
    * @param cellNumber
    * @returns
    */
-  __getIamwebOrderRange(cellNumber: number): GoogleSheetRange {
-    return { cellNumber: cellNumber, start: 'B', end: 'AK' };
-  }
+  // __getIamwebOrderRange(cellNumber: number): GoogleSheetRange {
+  //   const range = AutomationConfig.googleSheet.iamweb.range.order;
+  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // }
 
   /**
    * 아임웹 주문 상태값 범위
    * @param cellNumber
    * @returns
    */
-  __getIamwebOrderStatusRange(cellNumber: number): GoogleSheetRange {
-    return { cellNumber: cellNumber, start: 'C', end: 'C' };
-  }
+  // __getIamwebOrderStatusRange(cellNumber: number): GoogleSheetRange {
+  //   const range = AutomationConfig.googleSheet.iamweb.range.status;
+  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // }
 
   /**
    * 아임웹 로그 범위
    * @param cellNumber
    * @returns
    */
-  __getIamwebOrderLogRange(cellNumber: number): GoogleSheetRange {
-    return { cellNumber: cellNumber, start: 'B', end: 'AL' };
-  }
+  // __getIamwebOrderLogRange(cellNumber: number): GoogleSheetRange {
+  //   const range = AutomationConfig.googleSheet.iamweb.range.log;
+  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // }
 
   /**
    * 배차 라인 범위
    * @param cellNumber
    * @returns
    */
-  __getDispatchRange(cellNumber: number): GoogleSheetRange {
-    return { cellNumber: cellNumber, start: 'B', end: 'R' };
-  }
+  // __getDispatchRange(cellNumber: number): GoogleSheetRange {
+  //   const range = AutomationConfig.googleSheet.dispatch.range.order;
+  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // }
 
   /**
    * 배차 로그 범위
    * @param cellNumber
    * @returns
    */
-  __getDispatchLogRange(cellNumber: number): GoogleSheetRange {
-    return { cellNumber: cellNumber, start: 'B', end: 'S' };
-  }
+  // __getDispatchLogRange(cellNumber: number): GoogleSheetRange {
+  //   const range = AutomationConfig.googleSheet.dispatch.range.log;
+  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // }
 
   /**
    * Iamweb Order -> Json 데이터
@@ -274,7 +284,10 @@ export class AutomationSchedulerUtils {
       });
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getIamwebOrderStatusRange(iamwebOrder.googleLineNumber),
+      this.__getGoogleSheetRange(
+        iamwebOrder.googleLineNumber,
+        AutomationConfig.googleSheet.iamweb.range.status,
+      ),
     );
 
     // 구글시트에 상태값 업데이트
@@ -313,7 +326,10 @@ export class AutomationSchedulerUtils {
     );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getIamwebOrderRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.iamweb.range.order,
+      ),
     );
 
     await this.googleIamwebOrderUtil.updateGoogleSheet(
@@ -344,7 +360,10 @@ export class AutomationSchedulerUtils {
     );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getDispatchRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.dispatch.range.order,
+      ),
     );
 
     await this.googleDispatchUtil.updateGoogleSheet(cellInfo[0], cellInfo[1], [
@@ -375,7 +394,10 @@ export class AutomationSchedulerUtils {
     );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getDispatchRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.dispatch.range.order,
+      ),
     );
     const newData = [time, ...cellInfo[0]];
 
@@ -393,7 +415,10 @@ export class AutomationSchedulerUtils {
    */
   async readGoogleSheetIamwebOrderInfo(cellNum: number): Promise<any[][]> {
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getIamwebOrderRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.iamweb.range.order,
+      ),
     );
 
     return await this.googleIamwebOrderUtil.readGoogleSheet(
@@ -409,7 +434,10 @@ export class AutomationSchedulerUtils {
    */
   async readGoogleSheetIamwebOrderLogInfo(cellNum: number): Promise<any[][]> {
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getIamwebOrderLogRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.iamweb.range.log,
+      ),
     );
 
     return await this.googleIamwebOrderLogUtil.readGoogleSheet(
@@ -430,7 +458,10 @@ export class AutomationSchedulerUtils {
     logData: any[][],
   ): Promise<void> {
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getIamwebOrderLogRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.iamweb.range.log,
+      ),
     );
 
     const newData = [[time, ...logData[0]]];
@@ -454,7 +485,10 @@ export class AutomationSchedulerUtils {
     logData: any[][],
   ): Promise<void> {
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getDispatchLogRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.dispatch.range.log,
+      ),
     );
 
     const newData = [[time, ...logData[0]]];
@@ -473,7 +507,10 @@ export class AutomationSchedulerUtils {
    */
   async readGoogleSheetDispatchInfo(cellNum: number): Promise<any[][]> {
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
-      this.__getDispatchRange(cellNum),
+      this.__getGoogleSheetRange(
+        cellNum,
+        AutomationConfig.googleSheet.dispatch.range.order,
+      ),
     );
 
     return await this.googleDispatchUtil.readGoogleSheet(
@@ -532,7 +569,11 @@ export class AutomationSchedulerUtils {
     time: string,
     fileName: string,
   ) {
-    await this.logUtil.save(logString, fileName);
+    await this.logUtil.save(
+      AutomationConfig.files.log.iamweb.path,
+      fileName,
+      logString,
+    );
 
     const lineNumber: LineNumber = await this.automationDbUtils.getLineNumber(
       prisma,
@@ -563,7 +604,11 @@ export class AutomationSchedulerUtils {
     fileName: string,
   ) {
     // 로그파일 작성
-    await this.logUtil.save(logString, fileName);
+    await this.logUtil.save(
+      AutomationConfig.files.log.dispatch.path,
+      fileName,
+      logString,
+    );
 
     const lineNumber: LineNumber = await this.automationDbUtils.getLineNumber(
       prisma,
@@ -647,13 +692,16 @@ export class AutomationSchedulerUtils {
     // 알림 전송
     await this.sendSlack(SlackAlertType.ORDER_DISPATCH_DATA_CHANGE, logString);
 
+    // 텔레그램에 전송
+    await this.sendTelegram(logString);
+
     // 로그파일 저장
     await this.saveDispatchLog(
       prisma,
       lineNewData,
       logString,
       time,
-      `LOG_DISPATCH_${dispatchGoogleSheetLine}.log`,
+      `LOG_${AutomationConfig.files.log.dispatch.name}_${dispatchGoogleSheetLine}.log`,
     );
   }
 

@@ -12,6 +12,7 @@ import { IamwebOrderStatus } from './libs/modes/iamweb.order.status';
 import { MomentDate } from './libs/utils/date.utils';
 import { DispatchStatus } from './libs/modes/dispatch.status';
 import { SlackAlertType } from './libs/utils/slack.utils';
+import { AutomationConfig } from './config/iamweb.automation/automation.config';
 
 @Injectable()
 export class AppScheduler {
@@ -193,7 +194,7 @@ export class AppScheduler {
           orderGoogleSheetData,
           logString,
           time,
-          'LOG_IAMWEBORDER_' + orderDBData.googleLineNumber + '.log',
+          `LOG_${AutomationConfig.files.log.iamweb.name}_${orderDBData.googleLineNumber}.log`,
         );
       }
     }
@@ -267,7 +268,7 @@ export class AppScheduler {
    * 주문 -> 배차 시트에 작성
    */
   @Cron('20 * * * * *')
-  async dispatch() {
+  async addDispatchSheetInGoogleSheet() {
     console.log('----------- 배차데이터 추가 스케쥴 ----------------');
 
     // 주문 데이터에서 배차요청인 데이터 조회

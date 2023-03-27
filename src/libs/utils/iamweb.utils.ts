@@ -1,5 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { ApiUtils } from './api.utils';
+import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 import {
   IamwebOrderGoogleModel,
   IamwebProductModel,
@@ -7,14 +8,14 @@ import {
 
 // 아임웹 상품 코드
 // 아임웹 사이트 상품 URL에서 확인가능
-export enum ProductType {
-  privateTaxi = 133,
-  pickup = 83,
-  sanding = 122,
-  tPickup = 146,
-  tSanding = 147,
-  tPrivateTaxi = 148,
-}
+// export enum ProductType {
+//   privateTaxi = 133,
+//   pickup = 83,
+//   sanding = 122,
+//   tPickup = 146,
+//   tSanding = 147,
+//   tPrivateTaxi = 148,
+// }
 
 export class IamwebUtils {
   apiUtils: ApiUtils;
@@ -102,14 +103,16 @@ export class IamwebUtils {
      * 샌딩: 122 - 편도
      */
 
+    const type = AutomationConfig.iamwebProductID;
+
     switch (productNo) {
-      case ProductType.privateTaxi:
-      case ProductType.tPrivateTaxi:
+      case type.privateTaxi:
+      case type.tPrivateTaxi:
         return '대절';
-      case ProductType.pickup:
-      case ProductType.sanding:
-      case ProductType.tSanding:
-      case ProductType.tPickup:
+      case type.pickup:
+      case type.sanding:
+      case type.tSanding:
+      case type.tPickup:
         return '편도';
     }
     return '상품번호오류';
