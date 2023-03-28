@@ -9,9 +9,9 @@ import { IamwebOrderGoogleModel } from './libs/modes/iamweb.order';
 import { IamwebUtils } from './libs/utils/iamweb.utils';
 import { AutomationDBUtils } from './libs/utils/automation.db.utils';
 import { IamwebOrderStatus } from './libs/modes/iamweb.order.status';
-import { MomentDate } from './libs/utils/date.utils';
+import { MomentDate } from './libs/core/date.utils';
 import { DispatchStatus } from './libs/modes/dispatch.status';
-import { SlackAlertType } from './libs/utils/slack.utils';
+import { SlackAlertType } from './libs/core/slack.utils';
 import { AutomationConfig } from './config/iamweb.automation/automation.config';
 
 @Injectable()

@@ -2,7 +2,7 @@ import { Controller, Get, Query, Render } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AppService } from './app.service';
-import { LogUtil } from './libs/utils/log.utils';
+import { LogUtil } from './libs/core/logfile.utils';
 import { AutomationConfig } from './config/iamweb.automation/automation.config';
 
 class TokenForLogfile {

@@ -1,18 +1,19 @@
 import { HttpService } from '@nestjs/axios';
 import { LineNumber, IamwebOrderInfo, DispatchInfo } from '@prisma/client';
 
-import { DateUtil, MomentDate } from './date.utils';
-import { GoogleSheetUtils } from './google.sheet.utils';
+import { MomentDate } from '../core/date.utils';
+import { GoogleSheetUtils } from '../core/google.sheet.utils';
 import { IamwebUtils } from './iamweb.utils';
-import { SlackUtil, SlackAlertType } from './slack.utils';
-import { LogUtil } from './log.utils';
-import { TelegramUtils } from './telegram.utils';
+import { SlackUtil, SlackAlertType } from '../core/slack.utils';
+import { LogUtil } from '../core/logfile.utils';
+import { TelegramUtils } from '../core/telegram.utils';
 import { IamwebOrderGoogleModel } from '../modes/iamweb.order';
 import { PrismaService } from '../../config/prisma/prisma.service';
 import { AutomationDBUtils } from './automation.db.utils';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { DispatchStatus } from '../modes/dispatch.status';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
+import { AutomationDataConvert } from './automation.data.convert';
 
 const GOOGLE_SHEET_IAMWEB_ORDER_ID = process.env.GOOGLE_SHEET_IAMWEB_ORDER_ID;
 const GOOGLE_SHEET_DISPATCH_ID = process.env.GOOGLE_SHEET_DISPATCH_ID;
@@ -93,121 +94,71 @@ export class AutomationSchedulerUtils {
     return { cellNumber: lineNumber, start: range.start, end: range.end };
   }
 
-  /**
-   * 아임웹 라인 범위
-   * @param cellNumber
-   * @returns
-   */
-  // __getIamwebOrderRange(cellNumber: number): GoogleSheetRange {
-  //   const range = AutomationConfig.googleSheet.iamweb.range.order;
-  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
+  // /**
+  //  * Iamweb Order -> Json 데이터
+  //  * @param orderData
+  //  * @param cellNum
+  //  * @returns
+  //  */
+  // async __convertJsonDataFromIamwebOrder(
+  //   orderData: IamwebOrderGoogleModel,
+  //   cellNum: number,
+  //   iamwebOrderStatus: IamwebOrderStatus,
+  // ): Promise<any[]> {
+  //   const formData = orderData.form;
+
+  //   const yyyy_mm_dd = new DateUtil().YYYYMMDD(orderData.order_time, '-');
+  //   const hh_mm_dd = new DateUtil().HHMMSS(orderData.order_time, ':');
+
+  //   const snsChannel = formData[0].value;
+  //   const snsId = formData[1].value;
+  //   const boardingPersonCount = formData[2].value;
+  //   const boardingDate = formData[3].value;
+  //   const boardingTime = formData[4].value;
+  //   const airplane = formData[5].value;
+  //   const takeOffAndLandingTime = formData[6].value;
+  //   const etc = formData[7].value;
+  //   const jsonNewData = [
+  //     (cellNum - 3).toString(), // '번호'
+  //     iamwebOrderStatus.toString(), // '상태값'
+  //     '구입채널', // '구입채널'
+  //     orderData.orderer.member_code, // '회원코드',
+  //     orderData.orderer.name, //'닉네임',
+  //     orderData.orderer.email, //'계정',
+  //     orderData.orderer.name, //'주문자명',
+  //     orderData.orderer.email, //'주문자 Email',
+  //     orderData.orderer.call.toString(), // '주문자 연락처',
+  //     orderData.order_no, //'주문번호',
+  //     yyyy_mm_dd, //'결제일자',
+  //     hh_mm_dd, //'결제시간',
+  //     `${orderData.payment.total_price}(${orderData.payment.price_currency})`, //'결제금액',
+  //     orderData.product_item.items.prod_name, // '상품명',
+  //     orderData.product_item.items.startLocation, //'출발지 위치명',
+  //     '출발지 위치명(관리자)',
+  //     orderData.product_item.items.startAddress, //'출발지주소',
+  //     '출발지주소(관리자)',
+  //     orderData.product_item.items.endAirport, // '도착공항',
+  //     orderData.product_item.items.endLocation, //'도착지위치명',
+  //     '도착지위치명(관리자)',
+  //     orderData.product_item.items.endAddress, // '도착지주소',
+  //     '도착지주소(관리자)',
+  //     orderData.product_item.items.startAirport, //'출발공항',
+  //     snsChannel, //'SNS채널',
+  //     snsId, //'SNS ID',
+  //     boardingPersonCount, //'탐승인원',
+  //     boardingDate, //'탑승일자',
+  //     boardingTime, //'탑승시간',
+  //     '(변경)탑승시간',
+  //     airplane, //'비행편',
+  //     takeOffAndLandingTime, //'이착륙시간',
+  //     etc, //'기타',
+  //     '취소사유',
+  //     '취소일자',
+  //     '취소시간',
+  //   ];
+
+  //   return jsonNewData;
   // }
-
-  /**
-   * 아임웹 주문 상태값 범위
-   * @param cellNumber
-   * @returns
-   */
-  // __getIamwebOrderStatusRange(cellNumber: number): GoogleSheetRange {
-  //   const range = AutomationConfig.googleSheet.iamweb.range.status;
-  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
-  // }
-
-  /**
-   * 아임웹 로그 범위
-   * @param cellNumber
-   * @returns
-   */
-  // __getIamwebOrderLogRange(cellNumber: number): GoogleSheetRange {
-  //   const range = AutomationConfig.googleSheet.iamweb.range.log;
-  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
-  // }
-
-  /**
-   * 배차 라인 범위
-   * @param cellNumber
-   * @returns
-   */
-  // __getDispatchRange(cellNumber: number): GoogleSheetRange {
-  //   const range = AutomationConfig.googleSheet.dispatch.range.order;
-  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
-  // }
-
-  /**
-   * 배차 로그 범위
-   * @param cellNumber
-   * @returns
-   */
-  // __getDispatchLogRange(cellNumber: number): GoogleSheetRange {
-  //   const range = AutomationConfig.googleSheet.dispatch.range.log;
-  //   return { cellNumber: cellNumber, start: range.start, end: range.end };
-  // }
-
-  /**
-   * Iamweb Order -> Json 데이터
-   * @param orderData
-   * @param cellNum
-   * @returns
-   */
-  async __convertJsonDataFromIamwebOrder(
-    orderData: IamwebOrderGoogleModel,
-    cellNum: number,
-    iamwebOrderStatus: IamwebOrderStatus,
-  ): Promise<any[]> {
-    const formData = orderData.form;
-
-    const yyyy_mm_dd = new DateUtil().YYYYMMDD(orderData.order_time, '-');
-    const hh_mm_dd = new DateUtil().HHMMSS(orderData.order_time, ':');
-
-    const snsChannel = formData[0].value;
-    const snsId = formData[1].value;
-    const boardingPersonCount = formData[2].value;
-    const boardingDate = formData[3].value;
-    const boardingTime = formData[4].value;
-    const airplane = formData[5].value;
-    const takeOffAndLandingTime = formData[6].value;
-    const etc = formData[7].value;
-    const jsonNewData = [
-      (cellNum - 3).toString(), // '번호'
-      iamwebOrderStatus.toString(), // '상태값'
-      '구입채널', // '구입채널'
-      orderData.orderer.member_code, // '회원코드',
-      orderData.orderer.name, //'닉네임',
-      orderData.orderer.email, //'계정',
-      orderData.orderer.name, //'주문자명',
-      orderData.orderer.email, //'주문자 Email',
-      orderData.orderer.call.toString(), // '주문자 연락처',
-      orderData.order_no, //'주문번호',
-      yyyy_mm_dd, //'결제일자',
-      hh_mm_dd, //'결제시간',
-      `${orderData.payment.total_price}(${orderData.payment.price_currency})`, //'결제금액',
-      orderData.product_item.items.prod_name, // '상품명',
-      orderData.product_item.items.startLocation, //'출발지 위치명',
-      '출발지 위치명(관리자)',
-      orderData.product_item.items.startAddress, //'출발지주소',
-      '출발지주소(관리자)',
-      orderData.product_item.items.endAirport, // '도착공항',
-      orderData.product_item.items.endLocation, //'도착지위치명',
-      '도착지위치명(관리자)',
-      orderData.product_item.items.endAddress, // '도착지주소',
-      '도착지주소(관리자)',
-      orderData.product_item.items.startAirport, //'출발공항',
-      snsChannel, //'SNS채널',
-      snsId, //'SNS ID',
-      boardingPersonCount, //'탐승인원',
-      boardingDate, //'탑승일자',
-      boardingTime, //'탑승시간',
-      '(변경)탑승시간',
-      airplane, //'비행편',
-      takeOffAndLandingTime, //'이착륙시간',
-      etc, //'기타',
-      '취소사유',
-      '취소일자',
-      '취소시간',
-    ];
-
-    return jsonNewData;
-  }
 
   /**
    *
@@ -216,46 +167,46 @@ export class AutomationSchedulerUtils {
    * @param dispatchStatus
    * @returns
    */
-  async __convertJsonDataFromDispatch(
-    orderData: IamwebOrderGoogleModel,
-    cellNum: number,
-    dispatchStatus: DispatchStatus,
-  ): Promise<any[]> {
-    const formData = orderData.form;
+  // async __convertJsonDataFromDispatch(
+  //   orderData: IamwebOrderGoogleModel,
+  //   cellNum: number,
+  //   dispatchStatus: DispatchStatus,
+  // ): Promise<any[]> {
+  //   const formData = orderData.form;
 
-    const yyyy_mm_dd = new DateUtil().YYYYMMDD(orderData.order_time, '-');
-    const hh_mm_dd = new DateUtil().HHMMSS(orderData.order_time, ':');
+  //   const yyyy_mm_dd = new DateUtil().YYYYMMDD(orderData.order_time, '-');
+  //   const hh_mm_dd = new DateUtil().HHMMSS(orderData.order_time, ':');
 
-    const productNo = orderData.product_item.items.prod_no;
-    const productType: string = await this.iamwebUtil.getProductType(
-      Number(productNo),
-    );
+  //   const productNo = orderData.product_item.items.prod_no;
+  //   const productType: string = await this.iamwebUtil.getProductType(
+  //     Number(productNo),
+  //   );
 
-    const boardingPersonCount = formData[2].value;
-    const boardingDate = formData[3].value;
-    const boardingTime = formData[4].value;
-    const jsonNewData = [
-      (cellNum - 3).toString(), // '번호'
-      orderData.order_no,
-      yyyy_mm_dd, //'결제일자',
-      hh_mm_dd, //'결제시간',
-      dispatchStatus,
-      '', //취소일자
-      '', //취소시간
-      '라이크어로컬',
-      '010-9985-9547',
-      productType,
-      '-',
-      orderData.orderer.name, //'주문자명',
-      '010-9985-9547', // 이용자 연락처,
-      `${boardingDate} ${boardingTime}`, //'탑승일자', //'탑승시간',
-      `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, //'출발지 위치명' '출발지주소',
-      `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, //'도착지위치명',, // '도착지주소',
-      boardingPersonCount, //'탐승인원',
-    ];
+  //   const boardingPersonCount = formData[2].value;
+  //   const boardingDate = formData[3].value;
+  //   const boardingTime = formData[4].value;
+  //   const jsonNewData = [
+  //     (cellNum - 3).toString(), // '번호'
+  //     orderData.order_no,
+  //     yyyy_mm_dd, //'결제일자',
+  //     hh_mm_dd, //'결제시간',
+  //     dispatchStatus,
+  //     '', //취소일자
+  //     '', //취소시간
+  //     '라이크어로컬',
+  //     '010-9985-9547',
+  //     productType,
+  //     '-',
+  //     orderData.orderer.name, //'주문자명',
+  //     '010-9985-9547', // 이용자 연락처,
+  //     `${boardingDate} ${boardingTime}`, //'탑승일자', //'탑승시간',
+  //     `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, //'출발지 위치명' '출발지주소',
+  //     `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, //'도착지위치명',, // '도착지주소',
+  //     boardingPersonCount, //'탐승인원',
+  //   ];
 
-    return jsonNewData;
-  }
+  //   return jsonNewData;
+  // }
 
   /**
    * 구글시트라인 배열 -> 스트링으로 변환 (|로 붙입)
@@ -319,11 +270,12 @@ export class AutomationSchedulerUtils {
     iamwebOrderStatus: IamwebOrderStatus,
   ): Promise<string> {
     // 아임웹 주문 데이터 -> json구조로 변경
-    const iamwebOrderJsonData = await this.__convertJsonDataFromIamwebOrder(
-      iamwebOrderdata,
-      cellNum,
-      iamwebOrderStatus,
-    );
+    const iamwebOrderJsonData =
+      await new AutomationDataConvert().convertIamwebOrderFromIamwebOrderModelToJson(
+        iamwebOrderdata,
+        cellNum,
+        iamwebOrderStatus,
+      );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
       this.__getGoogleSheetRange(
@@ -353,11 +305,13 @@ export class AutomationSchedulerUtils {
     iamwebOrderdata: IamwebOrderGoogleModel,
     dispatchStatus: DispatchStatus,
   ): Promise<string> {
-    const jsonData = await this.__convertJsonDataFromDispatch(
-      iamwebOrderdata,
-      cellNum,
-      dispatchStatus,
-    );
+    const jsonData =
+      await new AutomationDataConvert().convertDispathFromIamwebOrderModelToJson(
+        iamwebOrderdata,
+        cellNum,
+        dispatchStatus,
+        this.iamwebUtil,
+      );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
       this.__getGoogleSheetRange(
@@ -387,11 +341,13 @@ export class AutomationSchedulerUtils {
     iamwebOrderdata: IamwebOrderGoogleModel,
     dispatchStatus: DispatchStatus,
   ): Promise<string> {
-    const jsonData = await this.__convertJsonDataFromDispatch(
-      iamwebOrderdata,
-      cellNum,
-      dispatchStatus,
-    );
+    const jsonData =
+      await new AutomationDataConvert().convertDispathFromIamwebOrderModelToJson(
+        iamwebOrderdata,
+        cellNum,
+        dispatchStatus,
+        this.iamwebUtil,
+      );
 
     const cellInfo: string[] = this.__getGoogleSheetCellStartEnd(
       this.__getGoogleSheetRange(

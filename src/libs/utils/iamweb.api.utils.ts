@@ -1,8 +1,8 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { Observable, catchError, firstValueFrom } from 'rxjs';
 
-import { MomentDate } from './date.utils';
-import { FileUtil } from './files.utils';
+import { MomentDate } from '../core/date.utils';
+import { FileUtil } from '../core/files.utils';
 import { HttpService } from '@nestjs/axios';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 
@@ -40,7 +40,7 @@ import { AutomationConfig } from '../../config/iamweb.automation/automation.conf
 //   },
 // };
 
-export class ApiUtils {
+export class IamwebApiUtils {
   constructor(private readonly httpService: HttpService) {}
   /**
    * 에러 파일에 작성하기

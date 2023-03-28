@@ -1,5 +1,5 @@
 import { HttpService } from '@nestjs/axios';
-import { ApiUtils } from './api.utils';
+import { IamwebApiUtils } from './iamweb.api.utils';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 import {
   IamwebOrderGoogleModel,
@@ -18,9 +18,9 @@ import {
 // }
 
 export class IamwebUtils {
-  apiUtils: ApiUtils;
+  apiUtils: IamwebApiUtils;
   constructor(private readonly httpService: HttpService) {
-    this.apiUtils = new ApiUtils(httpService);
+    this.apiUtils = new IamwebApiUtils(httpService);
   }
 
   /**
