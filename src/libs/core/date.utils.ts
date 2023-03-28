@@ -12,10 +12,10 @@ export enum DateAddType {
   milliseconds = 'ms',
 }
 
-export const MomentDate = {
-  date: (day = ''): moment.Moment => {
+export class DateUtil {
+  date(day = ''): moment.Moment {
     return moment(day);
-  },
+  }
 
   /**
    *
@@ -38,18 +38,18 @@ export const MomentDate = {
    * @param format 포멧
    * @returns
    */
-  nowString: (format: string): string => {
+  nowString(format: string): string {
     return moment().format(format);
-  },
+  }
 
   /**
    * 날짜객체 반환
    * @param dateString 날짜 스트링문자열
    * @returns
    */
-  now: (): moment.Moment => {
+  now(): moment.Moment {
     return moment();
-  },
+  }
 
   /**
    * 현재 시간 기준으로 더하기
@@ -57,9 +57,9 @@ export const MomentDate = {
    * @param type
    * @returns
    */
-  add: (num: number, type: DateAddType): moment.Moment => {
+  add(num: number, type: DateAddType): moment.Moment {
     return moment().add(num, type);
-  },
+  }
 
   /**
    * 기준날짜에서 더하기
@@ -68,17 +68,15 @@ export const MomentDate = {
    * @param type 타입
    * @returns
    */
-  addFromDate: (
+  addFromDate(
     day: moment.Moment,
     num: number,
     type: DateAddType,
-  ): moment.Moment => {
+  ): moment.Moment {
     return moment(day).add(num, type);
-  },
-};
+  }
 
-export class DateUtil {
-  dateFromTimeStamp = (timeStamp: number) => {
+  dateFromTimeStamp(timeStamp: number) {
     const date = new Date(timeStamp * 1000);
     const year = date.getFullYear().toString(); //년도 뒤에 두자리
     const month = ('0' + (date.getMonth() + 1)).slice(-2); //월 2자리 (01, 02 ... 12)
@@ -88,7 +86,7 @@ export class DateUtil {
     const second = ('0' + date.getSeconds()).slice(-2); //초 2자리 (00, 01 ... 59)
 
     return { year, month, day, hour, minute, second };
-  };
+  }
   YYYYMMDD = (timeStamp: number, splitStr: string) => {
     const { year, month, day } = this.dateFromTimeStamp(timeStamp);
     return `${year}${splitStr}${month}${splitStr}${day}`;

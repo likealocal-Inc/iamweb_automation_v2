@@ -1,10 +1,10 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { Observable, catchError, firstValueFrom } from 'rxjs';
 
-import { MomentDate } from '../core/date.utils';
 import { FileUtil } from '../core/files.utils';
 import { HttpService } from '@nestjs/axios';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
+import { DateUtil } from '../core/date.utils';
 
 /**
  * 아임웹 API 호출 응답 코드
@@ -48,7 +48,7 @@ export class IamwebApiUtils {
    */
   async __writeErrorLog(data: any) {
     const fileUtils = new FileUtil();
-    const time = MomentDate.nowString('YYYY/MM/DD hh:mm:ss');
+    const time = new DateUtil().nowString('YYYY/MM/DD hh:mm:ss');
     fileUtils.write('./log/error', 'iamweb_api.log', `[${time}] ${data}`);
   }
 

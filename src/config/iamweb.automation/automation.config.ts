@@ -1,5 +1,5 @@
 import { DispatchStatus } from '../../libs/modes/dispatch.status';
-import { MomentDate } from '../../libs/core/date.utils';
+import { DateUtil } from '../../libs/core/date.utils';
 export const AutomationConfig = {
   sign: {
     // 배열 -> 스트링 변환시 구분자
@@ -111,7 +111,7 @@ export const AutomationConfig = {
   alert: {
     // 알림에 들어 갈 시간
     getAlertTime: async (): Promise<string> => {
-      return MomentDate.nowString('YYYY/MM/DD hh:mm:ss');
+      return new DateUtil().nowString('YYYY/MM/DD hh:mm:ss');
     },
     makeNewIamwebOrder: async (
       newCellNum: number,
