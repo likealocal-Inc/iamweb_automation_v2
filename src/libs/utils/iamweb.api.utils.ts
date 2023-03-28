@@ -62,7 +62,7 @@ export class IamwebApiUtils {
     if (code === 200) {
       return data;
     }
-    const desc = AutomationConfig.iamwebApi.codeCheck(code);
+    const desc = AutomationConfig.iamwebApi.responseCodeCheck(code);
     this.__writeErrorLog(desc);
 
     return;

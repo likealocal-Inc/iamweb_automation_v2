@@ -1,8 +1,7 @@
 import { IamwebOrderInfo, LineNumber, DispatchInfo } from '@prisma/client';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { PrismaService } from '../../config/prisma/prisma.service';
-import { IamwebOrderEndStatus } from './automation.scheduler.utils';
-import { DispatchStatus } from '../modes/dispatch.status';
+import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 export class AutomationDBUtils {
   /**
    * 각 시트의 라인넘버를 반환
@@ -61,7 +60,7 @@ export class AutomationDBUtils {
     return await prisma.iamwebOrderInfo.findMany({
       where: {
         NOT: {
-          status: { in: IamwebOrderEndStatus },
+          status: { in: AutomationConfig.dispachFinishStatus },
         },
       },
     });
@@ -76,7 +75,7 @@ export class AutomationDBUtils {
     return await prisma.dispatchInfo.findMany({
       where: {
         NOT: {
-          status: DispatchStatus.DONE,
+          status: { in: AutomationConfig.dispachFinishStatus },
         },
       },
     });

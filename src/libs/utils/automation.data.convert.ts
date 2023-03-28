@@ -33,7 +33,7 @@ export class AutomationDataConvert {
     const boardingDate = formData[3].value;
     const boardingTime = formData[4].value;
     const jsonNewData = [
-      (cellNum - 3).toString(), // B '번호'
+      cellNum.toString(), // B '번호'
       orderData.order_no, // C
       yyyy_mm_dd, // D '결제일자' ,
       hh_mm_dd, // E '결제시간',
@@ -49,7 +49,7 @@ export class AutomationDataConvert {
       `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
       `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // P'도착지위치명',, // '도착지주소',
       boardingPersonCount, // Q '탐승인원',
-      // dispatchStatus, // R
+      dispatchStatus, // R
     ];
 
     return jsonNewData;
@@ -79,7 +79,7 @@ export class AutomationDataConvert {
     const takeOffAndLandingTime = formData[6].value;
     const etc = formData[7].value;
     const jsonNewData = [
-      (cellNum - 3).toString(), // '번호'
+      cellNum.toString(), // '번호'
       iamwebOrderStatus.toString(), // '상태값'
       '구입채널', // '구입채널'
       orderData.orderer.member_code, // '회원코드',

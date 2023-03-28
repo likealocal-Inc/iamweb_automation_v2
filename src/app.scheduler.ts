@@ -9,13 +9,16 @@ import { IamwebOrderGoogleModel } from './libs/modes/iamweb.order';
 import { IamwebUtils } from './libs/utils/iamweb.utils';
 import { AutomationDBUtils } from './libs/utils/automation.db.utils';
 import { IamwebOrderStatus } from './libs/modes/iamweb.order.status';
-import { MomentDate } from './libs/core/date.utils';
 import { DispatchStatus } from './libs/modes/dispatch.status';
 import { SlackAlertType } from './libs/core/slack.utils';
 import { AutomationConfig } from './config/iamweb.automation/automation.config';
+import { AutomationDispatchUtils } from './libs/utils/automation.dispatch.utils';
+import { AutomationIamwebOrderUtils } from './libs/utils/automation.iamweborder.utils';
 
 @Injectable()
 export class AppScheduler {
+  automationDispatchUtils: AutomationDispatchUtils;
+  automationIamwebOrderUtils: AutomationIamwebOrderUtils;
   automationSchedulerUtils: AutomationSchedulerUtils;
   iamwebUtils: IamwebUtils;
   automationDbUtils: AutomationDBUtils;
@@ -25,9 +28,17 @@ export class AppScheduler {
     private readonly prisma: PrismaService,
   ) {
     this.iamwebUtils = new IamwebUtils(this.httpService);
+    this.automationDispatchUtils = new AutomationDispatchUtils(
+      this.httpService,
+    );
+    this.automationIamwebOrderUtils = new AutomationIamwebOrderUtils(
+      this.httpService,
+    );
+
     this.automationSchedulerUtils = new AutomationSchedulerUtils(
       this.httpService,
     );
+
     this.automationDbUtils = new AutomationDBUtils();
   }
 
@@ -74,7 +85,7 @@ export class AppScheduler {
 
           // 구글시트에 작성 -> String구조로 받음
           const iamwebOrderStringData: string =
-            await this.automationSchedulerUtils.writeGoogleSheetIamwebOrderInfoAndGetLineString(
+            await this.automationIamwebOrderUtils.writeGoogleSheetIamwebOrderInfoAndGetLineString(
               lineNumber.iamwebOrderInfoLineNumber, // 구글시트 라인 넘버
               iamwebOrderData,
               firstStatus,
@@ -94,7 +105,7 @@ export class AppScheduler {
           await this.automationDbUtils.setLineNumber(_prisma, lineNumber);
 
           // 신규 주문 알림 전송
-          await this.automationSchedulerUtils.sendMessageNewOrder(
+          await this.automationIamwebOrderUtils.sendMessageNewOrder(
             lineNumber.iamwebOrderInfoLineNumber,
             iamwebOrderData,
           );
@@ -128,7 +139,7 @@ export class AppScheduler {
 
       // 구글시트 데이터 가져옴
       const orderGoogleSheetData: any[][] =
-        await this.automationSchedulerUtils.readGoogleSheetIamwebOrderInfo(
+        await this.automationIamwebOrderUtils.readGoogleSheetIamwebOrderInfo(
           orderDBData.googleLineNumber,
         );
 
@@ -140,21 +151,34 @@ export class AppScheduler {
 
       // DB에 저장된 데이터와 현재 구글시트의 데이터가 동일한지 확인
       if (orderGoogleSheetDataString !== orderDBData.infoData) {
+        const statusIndex =
+          AutomationConfig.googleSheet.iamweb.range.status.arrIndex;
+
+        const delim = AutomationConfig.sign.arrToStrDelim;
+
         // 상태값 체크
-        const oldStatus = orderDBData.infoData.split('|')[1];
-        const newStatus = orderGoogleSheetDataString.split('|')[1];
+        const oldStatus = orderDBData.infoData.split(delim)[statusIndex];
+        const newStatus = orderGoogleSheetDataString.split(delim)[statusIndex];
 
         let newIamwebOrderStatus: IamwebOrderStatus;
 
+        const time = await AutomationConfig.alert.getAlertTime();
+
         // 상태값이 바뀐것에 대한 프로세스
         if (oldStatus !== newStatus) {
-          await this.automationSchedulerUtils.updateGoogleSheetAndDBIamwebOrderStatus(
+          await this.automationIamwebOrderUtils.updateGoogleSheetAndDBIamwebOrderStatus(
             this.prisma,
             orderDBData.id,
             newIamwebOrderStatus,
           );
 
-          const changeStatusLog = `상태값변경\r\n[${orderDBData.googleLineNumber}] : ${newStatus}`;
+          // 상태 변경 알림 메세지
+          const changeStatusLog = await AutomationConfig.alert.makeChangeStatus(
+            time,
+            orderDBData.googleLineNumber,
+            oldStatus,
+            newStatus,
+          );
 
           await this.automationSchedulerUtils.sendSlack(
             SlackAlertType.IAMWEB_ORDER,
@@ -172,31 +196,86 @@ export class AppScheduler {
           },
         );
 
-        const time = MomentDate.nowString('YYYY/MM/DD hh:mm:ss');
-
-        const logString =
-          '[' +
-          time +
-          ']\r\nOLD:' +
-          orderDBData.infoData +
-          '\r\nNEW:' +
-          orderGoogleSheetDataString;
+        // 알림 메세지 생성
+        const alertMessage = await AutomationConfig.alert.makeMessage(
+          time,
+          orderDBData.infoData,
+          orderGoogleSheetDataString,
+        );
 
         // 알림 전송
         await this.automationSchedulerUtils.sendSlack(
           SlackAlertType.IAMWEB_ORDER,
-          logString,
+          alertMessage,
         );
 
         // 로그파일 저장
-        await this.automationSchedulerUtils.saveIamwebOrderLog(
+        await this.automationIamwebOrderUtils.saveIamwebOrderLog(
           this.prisma,
           orderGoogleSheetData,
-          logString,
+          alertMessage,
           time,
-          `LOG_${AutomationConfig.files.log.iamweb.name}_${orderDBData.googleLineNumber}.log`,
+          await AutomationConfig.logfile.makeDispatchFileName(
+            orderDBData.googleLineNumber,
+          ),
         );
       }
+    }
+  }
+
+  /**
+   * 주문 -> 배차 시트에 작성
+   */
+  @Cron('20 * * * * *')
+  async addDispatchSheetInGoogleSheet() {
+    console.log('----------- 배차데이터 추가 스케쥴 ----------------');
+
+    // 주문시트에서 작성된 배차요청이 아직 배차구글시트에 작성이 안된것만 모은다
+    const newDispatchRequestList: IamwebOrderInfo[] =
+      await this.automationDispatchUtils.getDispatchRequestList(this.prisma);
+
+    // 새로운 배차 요청 배차시트에 작성
+    for (let index = 0; index < newDispatchRequestList.length; index++) {
+      const newOrderData: IamwebOrderInfo = newDispatchRequestList[index];
+
+      await this.prisma.$transaction(async (_prisma) => {
+        // 라인넘버 조회
+        const lineNumber: LineNumber =
+          await this.automationDbUtils.getLineNumber(_prisma);
+
+        // 라인넘버 하나 증가
+        lineNumber.dispatchInfoLineNumber++;
+
+        // 해당 주문데이터를 아엠웹 API로 조회한다.
+        const orderModel: IamwebOrderGoogleModel =
+          await this.iamwebUtils.getIamwebOrder(newOrderData.iamwebOrderId);
+
+        // 구글시트에 데이터 작성
+        const dispatchStringData: string =
+          await this.automationDispatchUtils.writeGoogleSheetDispatchInfoAndGetLineString(
+            lineNumber.dispatchInfoLineNumber,
+            orderModel,
+            DispatchStatus.INIT,
+          );
+
+        await _prisma.dispatchInfo.create({
+          data: {
+            googleLineNumber: lineNumber.dispatchInfoLineNumber,
+            iamwebOrderInfoId: newOrderData.id,
+            infoData: dispatchStringData,
+            status: DispatchStatus.INIT,
+          },
+        });
+
+        // 새로운 라인넘버 DB에 저장
+        await this.automationDbUtils.setLineNumber(_prisma, lineNumber);
+
+        // 알림 전송
+        this.automationDispatchUtils.alertForNewDispatch(
+          lineNumber.dispatchInfoLineNumber,
+          dispatchStringData,
+        );
+      });
     }
   }
 
@@ -217,7 +296,7 @@ export class AppScheduler {
 
       // 배차 구글시트 데이터 가져옴
       const lineNewData: any[][] =
-        await this.automationSchedulerUtils.readGoogleSheetDispatchInfo(
+        await this.automationDispatchUtils.readGoogleSheetDispatchInfo(
           dispatchDB.googleLineNumber,
         );
 
@@ -227,17 +306,24 @@ export class AppScheduler {
           lineNewData[0],
         );
 
-      // DB에 저장된 데이터와 현재 구글시트의 데이터가 동일한지 확인
+      // DB에 저장된 데이터와 현재 구글시트의 데이터가 다를 경우
+      // -> 변경된 데이터에 대한 처리
       if (lineNewDataString !== dispatchDB.infoData) {
+        const statusIndex =
+          AutomationConfig.googleSheet.dispatch.range.status.arrIndex;
+
+        const delim = AutomationConfig.sign.arrToStrDelim;
+
         // 상태값 체크
-        const oldStatus = dispatchDB.infoData.split('|')[4];
-        const newStatus = lineNewDataString.split('|')[4];
+        const oldStatus = dispatchDB.infoData.split(delim)[statusIndex];
+        const newStatus = lineNewDataString.split(delim)[statusIndex];
 
         // 상태값이 바뀐것에 대한 프로세스
         if (oldStatus !== newStatus) {
-          this.automationSchedulerUtils.dispatchChangeStatus(
+          this.automationDispatchUtils.dispatchChangeStatus(
             this.prisma,
             dispatchDB.iamwebOrderInfoId,
+            oldStatus,
             newStatus,
           );
         }
@@ -253,7 +339,7 @@ export class AppScheduler {
         );
 
         // 로그 및 알람 전송
-        this.automationSchedulerUtils.logAndAlertForDispatch(
+        this.automationDispatchUtils.logAndAlertForDispatch(
           this.prisma,
           dispatchDB.infoData,
           lineNewDataString,
@@ -261,72 +347,6 @@ export class AppScheduler {
           dispatchDB.googleLineNumber,
         );
       }
-    }
-  }
-
-  /**
-   * 주문 -> 배차 시트에 작성
-   */
-  @Cron('20 * * * * *')
-  async addDispatchSheetInGoogleSheet() {
-    console.log('----------- 배차데이터 추가 스케쥴 ----------------');
-
-    // 주문 데이터에서 배차요청인 데이터 조회
-    const iamwebOrderList: IamwebOrderInfo[] =
-      await this.automationDbUtils.getIamwebOrderWithStatus(
-        this.prisma,
-        IamwebOrderStatus.DISPATCH_REQUEST,
-      );
-
-    // 주문시트에서 작성된 배차요청이 아직 배차구글시트에 작성이 안된것만 모은다
-    const newDispatchRequestList: IamwebOrderInfo[] =
-      await this.automationSchedulerUtils.getNewDispatchRequestList(
-        this.prisma,
-        iamwebOrderList,
-      );
-
-    // 새로운 배차 요청 배차시트에 작성
-    for (let index = 0; index < newDispatchRequestList.length; index++) {
-      const newOrderData: IamwebOrderInfo = newDispatchRequestList[index];
-
-      await this.prisma.$transaction(async (_prisma) => {
-        // 라인넘버 조회
-        const lineNumber: LineNumber =
-          await this.automationDbUtils.getLineNumber(_prisma);
-
-        // 라인넘버 하나 증가
-        lineNumber.dispatchInfoLineNumber++;
-
-        // 해당 주문데이터를 아엠웹 API로 조회한다.
-        const orderModel: IamwebOrderGoogleModel =
-          await this.iamwebUtils.getIamwebOrder(newOrderData.iamwebOrderId);
-
-        // 구글시트에 데이터 작성
-        const dispatchStringData: string =
-          await this.automationSchedulerUtils.writeGoogleSheetDispatchInfoAndGetLineString(
-            lineNumber.dispatchInfoLineNumber,
-            orderModel,
-            DispatchStatus.INIT,
-          );
-
-        await _prisma.dispatchInfo.create({
-          data: {
-            googleLineNumber: lineNumber.dispatchInfoLineNumber,
-            iamwebOrderInfoId: newOrderData.id,
-            infoData: dispatchStringData,
-            status: DispatchStatus.INIT,
-          },
-        });
-
-        // 새로운 라인넘버 DB에 저장
-        await this.automationDbUtils.setLineNumber(_prisma, lineNumber);
-
-        // 알림 전송
-        this.automationSchedulerUtils.alertForNewDispatch(
-          lineNumber.dispatchInfoLineNumber,
-          dispatchStringData,
-        );
-      });
     }
   }
 }
