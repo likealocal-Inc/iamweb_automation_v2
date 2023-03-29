@@ -105,7 +105,7 @@ export class AppScheduler {
           await this.automationDbUtils.setLineNumber(_prisma, lineNumber);
 
           // 신규 주문 알림 전송
-          await this.automationIamwebOrderUtils.sendMessageNewOrder(
+          await this.automationIamwebOrderUtils.alserNewOrder(
             lineNumber.iamwebOrderInfoLineNumber,
             iamwebOrderData,
           );
@@ -172,17 +172,12 @@ export class AppScheduler {
             newIamwebOrderStatus,
           );
 
-          // 상태 변경 알림 메세지
-          const changeStatusLog = await AutomationConfig.alert.makeChangeStatus(
+          // 상태값 변경 알람 전송
+          this.automationIamwebOrderUtils.alertChangeStatus(
             time,
             orderDBData.googleLineNumber,
             oldStatus,
             newStatus,
-          );
-
-          await this.automationSchedulerUtils.sendSlack(
-            SlackAlertType.IAMWEB_ORDER,
-            changeStatusLog,
           );
         }
 
@@ -258,6 +253,7 @@ export class AppScheduler {
             DispatchStatus.INIT,
           );
 
+        // 배차시트에 데이터 DB 작성
         await _prisma.dispatchInfo.create({
           data: {
             googleLineNumber: lineNumber.dispatchInfoLineNumber,

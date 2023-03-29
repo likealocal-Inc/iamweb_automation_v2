@@ -84,7 +84,7 @@ export class AutomationIamwebOrderUtils {
    * @param newCellNum
    * @param orderData
    */
-  async sendMessageNewOrder(
+  async alserNewOrder(
     newCellNum: number,
     orderData: IamwebOrderGoogleModel,
   ): Promise<void> {
@@ -94,6 +94,33 @@ export class AutomationIamwebOrderUtils {
         newCellNum,
         orderData.order_no,
       ),
+    );
+  }
+
+  /**
+   * 상태값 변경 알람
+   * @param time
+   * @param googleLineNumber
+   * @param oldStatus
+   * @param newStatus
+   */
+  async alertChangeStatus(
+    time: string,
+    googleLineNumber: number,
+    oldStatus: string,
+    newStatus: string,
+  ) {
+    // 상태 변경 알림 메세지
+    const changeStatusLog = await AutomationConfig.alert.makeChangeStatus(
+      time,
+      googleLineNumber,
+      oldStatus,
+      newStatus,
+    );
+
+    await this.automationSchedulerUtils.sendSlack(
+      SlackAlertType.IAMWEB_ORDER,
+      changeStatusLog,
     );
   }
 

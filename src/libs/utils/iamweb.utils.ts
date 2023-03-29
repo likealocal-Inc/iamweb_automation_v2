@@ -28,9 +28,7 @@ export class IamwebUtils {
    * @returns
    */
   async __getAcessToken(): Promise<string> {
-    const res = await this.apiUtils.call(
-      'https://api.imweb.me/v2/auth?key=07a74245318a9b532978b77a98630c3679a91eaecf&secret=1f6f033a9feb1368463038',
-    );
+    const res = await this.apiUtils.call(process.env.IAMWEB_API_GETTOKEN_URL);
 
     if (res === undefined) return;
 
