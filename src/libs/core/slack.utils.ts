@@ -4,6 +4,7 @@ import { firstValueFrom } from 'rxjs';
 export const SlackAlertType = {
   IAMWEB_ORDER: process.env.SLACK_IAMWEB_ORDER,
   ORDER_DISPATCH_DATA_CHANGE: process.env.SLACK_ORDER_DISPATCH_DATA,
+  ERROR: process.env.SLACK_ERROR,
 };
 
 export class SlackUtil {

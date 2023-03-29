@@ -1,10 +1,9 @@
 import { AxiosError, AxiosResponse } from 'axios';
 import { Observable, catchError, firstValueFrom } from 'rxjs';
 
-import { FileUtil } from '../core/files.utils';
 import { HttpService } from '@nestjs/axios';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
-import { DateUtil } from '../core/date.utils';
+import { ErrorLogUtils } from './error.log.utils';
 
 /**
  * 아임웹 API 호출 응답 코드
@@ -42,14 +41,22 @@ import { DateUtil } from '../core/date.utils';
 
 export class IamwebApiUtils {
   constructor(private readonly httpService: HttpService) {}
+
   /**
    * 에러 파일에 작성하기
    * @param data
    */
   async __writeErrorLog(data: any) {
-    const fileUtils = new FileUtil();
-    const time = new DateUtil().nowString('YYYY/MM/DD hh:mm:ss');
-    fileUtils.write('./log/error', 'iamweb_api.log', `[${time}] ${data}`);
+    await new ErrorLogUtils().write(data);
+    // const fileUtils = new FileUtil();
+    // const time = new DateUtil().nowString('YYYY/MM/DD hh:mm:ss');
+    // const path = new DateUtil().nowString('YYYY_MM_DD');
+    // const fileLogInfo = AutomationConfig.files.log.error;
+    // fileUtils.write(
+    //   fileLogInfo.path,
+    //   await fileLogInfo.getLogFileName(path),
+    //   `[${time}] ${data}\r\n`,
+    // );
   }
 
   /**
@@ -57,15 +64,15 @@ export class IamwebApiUtils {
    * @param data
    * @returns
    */
-  async __checkResponse(data) {
+  async __checkResponse(data): Promise<any> {
     const code = data['code'];
     if (code === 200) {
       return data;
     }
-    const desc = AutomationConfig.iamwebApi.responseCodeCheck(code);
-    this.__writeErrorLog(desc);
+    const desc = await AutomationConfig.iamwebApi.responseCodeCheck(code);
+    this.__writeErrorLog(`Iamweb api error: ${desc}`);
 
-    return;
+    return data;
   }
 
   /**
@@ -73,7 +80,7 @@ export class IamwebApiUtils {
    * @param accessToken
    * @returns
    */
-  makeHeadersAndParams(headers = {}, params = {}) {
+  async makeHeadersAndParams(headers = {}, params = {}): Promise<any> {
     return {
       headers,
       params,
@@ -86,7 +93,7 @@ export class IamwebApiUtils {
    * @param headersAndParams
    * @returns
    */
-  async call(url: string, headersAndParams = {}) {
+  async call(url: string, headersAndParams = {}): Promise<any> {
     const res: Observable<AxiosResponse<any, any>> = this.httpService.get(
       url,
       headersAndParams,

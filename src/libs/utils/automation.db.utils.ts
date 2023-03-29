@@ -9,7 +9,8 @@ export class AutomationDBUtils {
    * @returns
    */
   async getLineNumber(prisma: any): Promise<LineNumber> {
-    return await prisma.lineNumber.findUnique({ where: { id: 1 } });
+    //return await prisma.lineNumber.findFirst();
+    return await prisma.lineNumber.findFirst();
   }
 
   /**
@@ -18,7 +19,7 @@ export class AutomationDBUtils {
    * @param data
    */
   async setLineNumber(prisma: any, data: LineNumber) {
-    await prisma.lineNumber.update({ where: { id: 1 }, data });
+    await prisma.lineNumber.update({ where: { id: data.id }, data });
   }
 
   /**

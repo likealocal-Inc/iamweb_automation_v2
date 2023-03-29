@@ -42,3 +42,11 @@ model LineNumber{
   dispatchInfoLineNumber Int @default(5)
   dispatchInfoLogLineNumber Int @default(5)
 }
+
+model Tokens{
+  id Int @default(autoincrement()) @id
+  createdAt  DateTime   @default(now())
+  updated DateTime @updatedAt
+  
+  iamwebToken String
+}

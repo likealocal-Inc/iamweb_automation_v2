@@ -1,8 +1,9 @@
 import { HttpService } from '@nestjs/axios';
 
-import { SlackUtil } from '../core/slack.utils';
+import { SlackAlertType, SlackUtil } from '../core/slack.utils';
 import { TelegramUtils } from '../core/telegram.utils';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
+import { ErrorLogUtils } from './error.log.utils';
 
 type GoogleSheetRange = {
   cellNumber: number;
@@ -64,5 +65,14 @@ export class AutomationSchedulerUtils {
       Number.parseInt(process.env.TELEGRAM_BOT_CHAT_ID.toString()),
       msg,
     );
+  }
+
+  /**
+   * 에러로그 저장 및 알림
+   * @param msg
+   */
+  async errorLogAndAlert(msg: any) {
+    await this.sendSlack(SlackAlertType.ERROR, msg);
+    await new ErrorLogUtils().write(msg);
   }
 }

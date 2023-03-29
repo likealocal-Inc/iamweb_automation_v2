@@ -29,12 +29,12 @@ export class AutomationDispatchUtils {
 
     this.googleDispatchUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetDispatchId(),
-      AutomationConfig.googleSheet.GoogleSheetName.dispatchInfo.dispatch(),
+      AutomationConfig.googleSheet.googleSheetName.dispatchInfo.dispatch(),
     );
 
     this.googleDispatchLogUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetDispatchId(),
-      AutomationConfig.googleSheet.GoogleSheetName.dispatchInfo.dispatchLog(),
+      AutomationConfig.googleSheet.googleSheetName.dispatchInfo.dispatchLog(),
     );
 
     this.automationSchedulerUtils = new AutomationSchedulerUtils(
@@ -190,7 +190,16 @@ export class AutomationDispatchUtils {
     oldStatus: string,
     newStatus: string,
   ): Promise<void> {
-    let newIamwebOrderStatus: IamwebOrderStatus; // 미배차 -> 배차실패
+    // 해당 주문데이터가 배치에 있는지 확인
+    const dispatchList: DispatchInfo[] = await prisma.dispatchInfo.findMany({
+      where: { iamwebOrderInfoId: iamwebOrderInfoId },
+    });
+    if (dispatchList.length === 0) return;
+
+    // 배차에 해당 데이터가 없으면 아무일 없음
+    if (dispatchList.length === 0) return;
+
+    let newIamwebOrderStatus: IamwebOrderStatus;
 
     // 미배차 -> 배차실패
     if (newStatus === DispatchStatus.DISPATCH_NO) {
@@ -199,6 +208,30 @@ export class AutomationDispatchUtils {
     // 배차완료 ->  배차완료
     else if (newStatus === DispatchStatus.DISPATCH_DONE) {
       newIamwebOrderStatus = IamwebOrderStatus.DISPATCH_DONE;
+    }
+    // 취소 -> 취소완료
+    else if (newStatus === DispatchStatus.CANCEL) {
+      newIamwebOrderStatus = IamwebOrderStatus.CANCEL;
+    }
+    // 종료 -> 전체완료
+    else if (newStatus === DispatchStatus.DONE) {
+      newIamwebOrderStatus = IamwebOrderStatus.DONE;
+    }
+    // 지니변경 -> 배차변경
+    else if (newStatus === DispatchStatus.CHANGE_JINI) {
+      newIamwebOrderStatus = IamwebOrderStatus.DISPATCH_CHANGE;
+    }
+    // 예약변경확인완료 -> 배차변경
+    else if (newStatus === DispatchStatus.CHECK_CHANGE_BOOK) {
+      newIamwebOrderStatus = IamwebOrderStatus.DISPATCH_CHANGE;
+    }
+    // 예정 -> 배차변경
+    else if (newStatus === DispatchStatus.EXPECTED) {
+      newIamwebOrderStatus = IamwebOrderStatus.DISPATCH_CHANGE;
+    }
+    // 대기중 -> 배차변경
+    else if (newStatus === DispatchStatus.WAITING) {
+      newIamwebOrderStatus = IamwebOrderStatus.DISPATCH_CHANGE;
     }
 
     // 구글시트와 DB에 상태값 업데이트
@@ -223,6 +256,35 @@ export class AutomationDispatchUtils {
       SlackAlertType.ORDER_DISPATCH_DATA_CHANGE,
       changeStatusLog,
     );
+  }
+
+  /**
+   * 배차시트 상태값 변경
+   * @param prisma
+   * @param iamwebDBId
+   * @param oldStatus
+   * @param newStatus
+   */
+  async changeDispatchStatus(
+    prisma: PrismaService,
+    iamwebDBId: number,
+    newStatus: string,
+  ) {
+    const dispatchInfo: DispatchInfo = await prisma.dispatchInfo.findFirst({
+      where: { iamwebOrderInfoId: iamwebDBId },
+    });
+
+    const cellInfo: string[] =
+      await this.automationSchedulerUtils.getGoogleSheetCellStartEnd(
+        await this.automationSchedulerUtils.getGoogleSheetRange(
+          dispatchInfo.googleLineNumber,
+          AutomationConfig.googleSheet.dispatch.range.status,
+        ),
+      );
+
+    this.googleDispatchUtil.updateGoogleSheet(cellInfo[0], cellInfo[1], [
+      [newStatus],
+    ]);
   }
 
   /**
@@ -263,7 +325,7 @@ export class AutomationDispatchUtils {
       lineNewData,
       logString,
       time,
-      await AutomationConfig.logfile.makeDispatchFileName(
+      await AutomationConfig.files.log.dispatch.getLogFileName(
         dispatchGoogleSheetLine,
       ),
     );

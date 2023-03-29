@@ -11,6 +11,8 @@ import { AutomationConfig } from '../../config/iamweb.automation/automation.conf
 import { AutomationDataConvert } from './automation.data.convert';
 import { AutomationSchedulerUtils } from './automation.scheduler.utils';
 import { IamwebOrderInfo, LineNumber } from '@prisma/client';
+import { DispatchStatus } from '../modes/dispatch.status';
+import { AutomationDispatchUtils } from './automation.dispatch.utils';
 
 export class AutomationIamwebOrderUtils {
   logUtil: LogUtil;
@@ -24,12 +26,12 @@ export class AutomationIamwebOrderUtils {
     this.logUtil = new LogUtil();
     this.googleIamwebOrderUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetIamwebOrderId(),
-      AutomationConfig.googleSheet.GoogleSheetName.iamwebOrderInfo.getIamwebOrder(),
+      AutomationConfig.googleSheet.googleSheetName.iamwebOrderInfo.getIamwebOrder(),
     );
 
     this.googleIamwebOrderLogUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetIamwebOrderId(),
-      AutomationConfig.googleSheet.GoogleSheetName.iamwebOrderInfo.getIamwebOrderLog(),
+      AutomationConfig.googleSheet.googleSheetName.iamwebOrderInfo.getIamwebOrderLog(),
     );
 
     this.automationSchedulerUtils = new AutomationSchedulerUtils(
@@ -38,6 +40,34 @@ export class AutomationIamwebOrderUtils {
 
     this.slackUtil = new SlackUtil(this.httpService);
     this.automationDbUtils = new AutomationDBUtils();
+  }
+
+  /**
+   * 구글시트에 아임웹 로그데이터 쓰기
+   * @param cellNum
+   * @param time
+   * @param logData
+   */
+  async __writeGoogleSheetIamwebOrderInfoLog(
+    cellNum: number,
+    time: string,
+    logData: any[][],
+  ): Promise<void> {
+    const cellInfo: string[] =
+      await this.automationSchedulerUtils.getGoogleSheetCellStartEnd(
+        await this.automationSchedulerUtils.getGoogleSheetRange(
+          cellNum,
+          AutomationConfig.googleSheet.iamweb.range.log,
+        ),
+      );
+
+    const newData = [[time, ...logData[0]]];
+
+    await this.googleIamwebOrderLogUtil.updateGoogleSheet(
+      cellInfo[0],
+      cellInfo[1],
+      newData,
+    );
   }
 
   /**
@@ -109,7 +139,7 @@ export class AutomationIamwebOrderUtils {
     googleLineNumber: number,
     oldStatus: string,
     newStatus: string,
-  ) {
+  ): Promise<string> {
     // 상태 변경 알림 메세지
     const changeStatusLog = await AutomationConfig.alert.makeChangeStatus(
       time,
@@ -122,6 +152,35 @@ export class AutomationIamwebOrderUtils {
       SlackAlertType.IAMWEB_ORDER,
       changeStatusLog,
     );
+
+    return changeStatusLog;
+  }
+
+  /**
+   * 데이터 변경 알림
+   * @param time
+   * @param oldData
+   * @param newData
+   */
+  async alertChangeData(
+    time: string,
+    oldData: string,
+    newData: string,
+  ): Promise<string> {
+    // 알림 메세지 생성
+    const alertMessage = await AutomationConfig.alert.makeMessage(
+      time,
+      oldData,
+      newData,
+    );
+
+    // 알림 전송
+    await this.automationSchedulerUtils.sendSlack(
+      SlackAlertType.IAMWEB_ORDER,
+      alertMessage,
+    );
+
+    return alertMessage;
   }
 
   /**
@@ -153,7 +212,7 @@ export class AutomationIamwebOrderUtils {
   async updateGoogleSheetAndDBIamwebOrderStatus(
     prisma: PrismaService,
     iamwebOrderInfoId: number,
-    newStatus: IamwebOrderStatus,
+    newStatus: string,
   ): Promise<IamwebOrderInfo> {
     // 주문데이터 조회
     const iamwebOrder: IamwebOrderInfo =
@@ -169,7 +228,6 @@ export class AutomationIamwebOrderUtils {
         ),
       );
 
-    console.log(cellInfo);
     // 구글시트에 상태값 업데이트
     await this.googleIamwebOrderUtil.updateGoogleSheet(
       cellInfo[0],
@@ -211,7 +269,7 @@ export class AutomationIamwebOrderUtils {
 
     lineNumber.iamwebOrderInfoLogLineNumber++;
 
-    await this.writeGoogleSheetIamwebOrderInfoLog(
+    await this.__writeGoogleSheetIamwebOrderInfoLog(
       lineNumber.iamwebOrderInfoLogLineNumber,
       time,
       lineData,
@@ -221,30 +279,71 @@ export class AutomationIamwebOrderUtils {
   }
 
   /**
-   * 구글시트에 아임웹 로그데이터 쓰기
-   * @param cellNum
+   * 아임웹 상태값 변경
+   * @param prisma
    * @param time
-   * @param logData
+   * @param iamwebDBid
+   * @param googleLineNumber
+   * @param oldStatus
+   * @param newStatus
    */
-  async writeGoogleSheetIamwebOrderInfoLog(
-    cellNum: number,
+  async iamwebChangeStatus(
+    prisma: PrismaService,
     time: string,
-    logData: any[][],
-  ): Promise<void> {
-    const cellInfo: string[] =
-      await this.automationSchedulerUtils.getGoogleSheetCellStartEnd(
-        await this.automationSchedulerUtils.getGoogleSheetRange(
-          cellNum,
-          AutomationConfig.googleSheet.iamweb.range.log,
-        ),
+    iamwebDBid: number,
+    googleLineNumber: number,
+    oldStatus: string,
+    newStatus: string,
+  ) {
+    let newDispatchNewStatus: DispatchStatus = undefined;
+
+    // 접수 -> X
+    if (newStatus === IamwebOrderStatus.RECEIPT) {
+    }
+    // 배차요청 -> 배차관련 조회활때 처리됨
+    else if (newStatus === IamwebOrderStatus.DISPATCH_REQUEST) {
+    }
+    // 배차완료 -> X
+    else if (newStatus === IamwebOrderStatus.DISPATCH_DONE) {
+    }
+    // 전송완료 -> X
+    else if (newStatus === IamwebOrderStatus.DISPATCH_SEND) {
+    }
+    // 전체완료 ->
+    else if (newStatus === IamwebOrderStatus.DONE) {
+      newDispatchNewStatus = DispatchStatus.DONE;
+    }
+    // 정보오류 -> X
+    else if (newStatus === IamwebOrderStatus.INFO_ERROR) {
+    }
+    // 배차실패 -> X
+    else if (newStatus === IamwebOrderStatus.DISPATCH_FAIL) {
+    }
+    // 취소완료 ->
+    else if (newStatus === IamwebOrderStatus.CANCEL) {
+      newDispatchNewStatus = DispatchStatus.CANCEL;
+    }
+    // 배차변경 -> X
+    else if (newStatus === IamwebOrderStatus.DISPATCH_CHANGE) {
+    }
+
+    // 배차관련 상태값 변경
+    if (newDispatchNewStatus !== undefined) {
+      new AutomationDispatchUtils(this.httpService).changeDispatchStatus(
+        prisma,
+        iamwebDBid,
+        newStatus,
       );
+    }
 
-    const newData = [[time, ...logData[0]]];
-
-    await this.googleIamwebOrderLogUtil.updateGoogleSheet(
-      cellInfo[0],
-      cellInfo[1],
-      newData,
+    // 구글시트에 데이터 업데이트
+    await this.updateGoogleSheetAndDBIamwebOrderStatus(
+      prisma,
+      iamwebDBid,
+      newStatus,
     );
+
+    // 상태값 변경 알람 전송
+    await this.alertChangeStatus(time, googleLineNumber, oldStatus, newStatus);
   }
 }

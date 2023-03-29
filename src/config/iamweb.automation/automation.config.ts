@@ -9,7 +9,7 @@ export const AutomationConfig = {
   googleSheet: {
     getGoogleSheetIamwebOrderId: () => process.env.GOOGLE_SHEET_IAMWEB_ORDER_ID,
     getGoogleSheetDispatchId: () => process.env.GOOGLE_SHEET_DISPATCH_ID,
-    GoogleSheetName: {
+    googleSheetName: {
       iamwebOrderInfo: {
         getIamwebOrder: () => process.env.GOOGLE_SHEET_NAME_IAMWEB_ORDER,
         getIamwebOrderLog: () => process.env.GOOGLE_SHEET_NAME_IAMWEB_ORDER_LOG,
@@ -17,6 +17,16 @@ export const AutomationConfig = {
       dispatchInfo: {
         dispatch: () => process.env.GOOGLE_SHEET_NAME_DISPATCH,
         dispatchLog: () => process.env.GOOGLE_SHEET_NAME_DISPATCH_LOG,
+      },
+    },
+    startLineNumber: {
+      iamweb: {
+        main: 4,
+        log: 4,
+      },
+      dispatch: {
+        main: 4,
+        log: 4,
       },
     },
     iamweb: {
@@ -44,7 +54,7 @@ export const AutomationConfig = {
         },
         log: {
           start: 'B',
-          end: 'S',
+          end: 'Z',
         },
         status: {
           start: 'R',
@@ -57,8 +67,27 @@ export const AutomationConfig = {
   // 파일 처리 관련 설정
   files: {
     log: {
-      iamweb: { path: './files/iamweb', name: 'IAMWEBORDER' },
-      dispatch: { path: './files/dispatch', name: 'DISPATCH' },
+      iamweb: {
+        path: './files/iamweb',
+        name: 'IAMWEBORDER',
+        getLogFileName: async (lineNumber: number): Promise<string> => {
+          return `LOG_${AutomationConfig.files.log.iamweb.name}_${lineNumber}.log`;
+        },
+      },
+      dispatch: {
+        path: './files/dispatch',
+        name: 'DISPATCH',
+        getLogFileName: async (lineNumber: number): Promise<string> => {
+          return `LOG_${AutomationConfig.files.log.dispatch.name}_${lineNumber}.log`;
+        },
+      },
+      error: {
+        path: './files/error',
+        name: 'ERROR',
+        getLogFileName: async (info: string): Promise<string> => {
+          return `${AutomationConfig.files.log.error.name}_${info}.log`;
+        },
+      },
     },
   },
   // 아임웹 상품 아이디
@@ -92,7 +121,24 @@ export const AutomationConfig = {
       { CODE: -999, DESC: '서비스 점검중' },
       { CODE: 200, DESC: 'Success' },
     ],
-    responseCodeCheck: (code: number) => {
+    checkNeedNewToken: async (code: string): Promise<boolean> => {
+      for (
+        let index = 0;
+        index < AutomationConfig.iamwebApi.responseCodeList.length;
+        index++
+      ) {
+        if (
+          AutomationConfig.iamwebApi.responseCodeList[0].CODE.toString() ===
+            code ||
+          AutomationConfig.iamwebApi.responseCodeList[1].CODE.toString() ===
+            code
+        ) {
+          return true;
+        }
+      }
+      return false;
+    },
+    responseCodeCheck: async (code: number): Promise<string> => {
       for (
         let index = 0;
         index < AutomationConfig.iamwebApi.responseCodeList.length;
@@ -107,7 +153,6 @@ export const AutomationConfig = {
   },
   // 배차 종료 상태값
   dispachFinishStatus: [DispatchStatus.CANCEL, DispatchStatus.DONE],
-
   alert: {
     // 알림에 들어 갈 시간
     getAlertTime: async (): Promise<string> => {
@@ -142,17 +187,7 @@ export const AutomationConfig = {
       oldData: string,
       newData: string,
     ): Promise<string> => {
-      return `[${time}]\r\nOLD: ${oldData} \r\nNEW: ${newData}`;
-    },
-  },
-  // 로그파일 처리
-  logfile: {
-    // 배치 로그파일 이름
-    makeDispatchFileName: async (lineNumber: number): Promise<string> => {
-      return `LOG_${AutomationConfig.files.log.dispatch.name}_${lineNumber}.log`;
-    },
-    makeIamwebFileName: async (lineNumber: number): Promise<string> => {
-      return `LOG_${AutomationConfig.files.log.iamweb.name}_${lineNumber}.log`;
+      return `[${time}]\r\nOLD: ${oldData} \r\n\r\nNEW: ${newData}`;
     },
   },
 };

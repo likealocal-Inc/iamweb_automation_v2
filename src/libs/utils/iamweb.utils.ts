@@ -6,16 +6,7 @@ import {
   IamwebProductModel,
 } from '../modes/iamweb.order';
 
-// 아임웹 상품 코드
-// 아임웹 사이트 상품 URL에서 확인가능
-// export enum ProductType {
-//   privateTaxi = 133,
-//   pickup = 83,
-//   sanding = 122,
-//   tPickup = 146,
-//   tSanding = 147,
-//   tPrivateTaxi = 148,
-// }
+let tokenString = '';
 
 export class IamwebUtils {
   apiUtils: IamwebApiUtils;
@@ -27,20 +18,33 @@ export class IamwebUtils {
    * 액세스 토큰 조회
    * @returns
    */
-  async __getAcessToken(): Promise<string> {
-    const res = await this.apiUtils.call(process.env.IAMWEB_API_GETTOKEN_URL);
+  async __getAcessToken(isNeedNew = false): Promise<string> {
+    if (
+      isNeedNew ||
+      tokenString === null ||
+      tokenString === undefined ||
+      tokenString === ''
+    ) {
+      console.log('######### 아임웨 토큰 호출 #########');
 
-    if (res === undefined) return;
+      const res = await this.apiUtils.call(process.env.IAMWEB_API_GETTOKEN_URL);
 
-    return res['access_token'];
+      if (res === undefined) return;
+
+      const newToken = res['access_token'];
+      tokenString = newToken;
+      return newToken;
+    }
+    return tokenString;
   }
 
   async __getIamwebRequest(accessToken: string): Promise<any> {
     const url = 'https://api.imweb.me/v2/shop/inquirys';
     const res = await this.apiUtils.call(
       url,
-      this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
+      await this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
     );
+
     return res;
   }
 
@@ -57,10 +61,10 @@ export class IamwebUtils {
     const url = `https://api.imweb.me/v2/shop/orders/${orderId}/prod-orders`;
     const res = await this.apiUtils.call(
       url,
-      this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
+      await this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
     );
 
-    if (res === undefined) return;
+    if (res === undefined || res.data == undefined) return;
 
     return new IamwebProductModel(res.data[0]);
   }
@@ -79,7 +83,7 @@ export class IamwebUtils {
   ) {
     const res = await this.apiUtils.call(
       'https://api.imweb.me/v2/shop/orders',
-      this.apiUtils.makeHeadersAndParams(
+      await this.apiUtils.makeHeadersAndParams(
         { 'access-token': accessToken },
         {
           order_date_from: startTimeStatmp.substring(0, 10),
@@ -90,7 +94,7 @@ export class IamwebUtils {
 
     if (res === undefined) return;
 
-    return res['data']['list'];
+    return res['data'];
   }
 
   async getProductType(productNo: number) {
@@ -117,17 +121,6 @@ export class IamwebUtils {
   }
 
   /**
-   * 주문에 대한 요청 조회
-   * @returns
-   */
-  async getIamwebRequest(): Promise<any> {
-    const token = await this.__getAcessToken();
-    if (token === undefined) return;
-
-    return await this.__getIamwebRequest(token);
-  }
-
-  /**
    * 아임웹 주문 데이터 조회
    * @param iamwebOrderNo
    * @returns
@@ -135,7 +128,7 @@ export class IamwebUtils {
   async __getIamwebOrder(iamwebOrderNo: string, accessToken: string) {
     const res = await this.apiUtils.call(
       `https://api.imweb.me/v2/shop/orders/${iamwebOrderNo}`,
-      this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
+      await this.apiUtils.makeHeadersAndParams({ 'access-token': accessToken }),
     );
 
     if (res === undefined) return;
@@ -149,10 +142,18 @@ export class IamwebUtils {
    * @returns
    */
   async getIamwebOrder(iamwebOrderNo: string): Promise<IamwebOrderGoogleModel> {
-    const accessToken = await this.__getAcessToken();
+    let accessToken = await this.__getAcessToken();
     if (accessToken === undefined) return;
 
-    const res = await this.__getIamwebOrder(iamwebOrderNo, accessToken);
+    let res: any = await this.__getIamwebOrder(iamwebOrderNo, accessToken);
+
+    const check = await AutomationConfig.iamwebApi.checkNeedNewToken(
+      res['CODE'],
+    );
+    if (check) {
+      accessToken = await this.__getAcessToken(true);
+      res = await this.__getIamwebOrder(iamwebOrderNo, accessToken);
+    }
 
     // 주문데이터를 주문 모델로 변경
     const model: IamwebOrderGoogleModel = new IamwebOrderGoogleModel(res);
@@ -180,17 +181,33 @@ export class IamwebUtils {
   ): Promise<IamwebOrderGoogleModel[]> {
     // 토큰가져오기
 
-    const accessToken = await this.__getAcessToken();
+    let accessToken = await this.__getAcessToken();
     if (accessToken === undefined) return;
 
     const result = [];
 
     // 해단 조건의 아엠웹 주문 리스트 조회
-    const orderList = await this.__getIamwebOrderList(
+    let res: any = await this.__getIamwebOrderList(
       startTimeStatmp,
       endTimeStatmp,
       accessToken,
     );
+
+    if (res === undefined) return;
+
+    const check = await AutomationConfig.iamwebApi.checkNeedNewToken(
+      res['CODE'],
+    );
+    if (check) {
+      accessToken = await this.__getAcessToken(true);
+      res = await this.__getIamwebOrderList(
+        startTimeStatmp,
+        endTimeStatmp,
+        accessToken,
+      );
+    }
+
+    const orderList = res['list'];
 
     for (let index = 0; index < orderList.length; index++) {
       const orderData = orderList[index];
@@ -211,6 +228,26 @@ export class IamwebUtils {
       }
     }
     return result;
+  }
+
+  /**
+   * 주문에 대한 요청 조회
+   * @returns
+   */
+  async getIamwebRequest(): Promise<any> {
+    let token = await this.__getAcessToken();
+    if (token === undefined) return;
+
+    let res: any = await this.__getIamwebRequest(token);
+    const check = await AutomationConfig.iamwebApi.checkNeedNewToken(
+      res['CODE'],
+    );
+    if (check) {
+      token = await this.__getAcessToken(true);
+      res = await this.__getIamwebRequest(token);
+    }
+
+    return res;
   }
 
   /**

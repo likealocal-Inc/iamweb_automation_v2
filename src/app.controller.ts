@@ -5,11 +5,12 @@ import { AppService } from './app.service';
 import { LogUtil } from './libs/core/logfile.utils';
 import { AutomationConfig } from './config/iamweb.automation/automation.config';
 
+// 토큰 배열에 저장될 클래스 타입
 class TokenForLogfile {
   email: string;
   uuid: string;
 }
-
+// 토큰 정보가 저장될 배열
 const uuidIamwebList = {};
 const uuidDispatchList = {};
 
