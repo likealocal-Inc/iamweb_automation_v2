@@ -1,0 +1,14 @@
+<html>
+  <head>
+    <meta charset='utf-8' />
+    <title>Log file list</title>
+  </head>
+  <body>
+    <h2>Log files</h2>
+    <ul>
+      {{#each files}}
+        <li><a href='/error/{{this}}'>{{this}}</a></li>
+      {{/each}}
+    </ul>
+  </body>
+</html>

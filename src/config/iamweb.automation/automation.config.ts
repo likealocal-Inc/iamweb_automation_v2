@@ -170,7 +170,7 @@ export const AutomationConfig = {
       dispatchGoogleLineNumber: number,
       data: string,
     ): Promise<string> => {
-      return `배차요청등록: [${time}] [${dispatchGoogleLineNumber}]:${data}`;
+      return `배차요청등록: [${time}] [${dispatchGoogleLineNumber}]:${data}\r\n\r\n`;
     },
     // 상태값 변경
     makeChangeStatus: async (
@@ -179,7 +179,7 @@ export const AutomationConfig = {
       oleStatus: string,
       newStatus: string,
     ): Promise<string> => {
-      return `상태값변경\r\n[${time}] [${googleLineNumber}] : ${oleStatus} -> ${newStatus}`;
+      return `상태값변경\r\n[${time}] [${googleLineNumber}] : ${oleStatus} -> ${newStatus}\r\n\r\n`;
     },
     // 알림 메세지
     makeMessage: async (
@@ -187,7 +187,7 @@ export const AutomationConfig = {
       oldData: string,
       newData: string,
     ): Promise<string> => {
-      return `[${time}]\r\nOLD: ${oldData} \r\n\r\nNEW: ${newData}`;
+      return `[${time}]\r\nOLD: ${oldData} \r\nNEW: ${newData}\r\n\r\n`;
     },
   },
 };

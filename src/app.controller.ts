@@ -13,6 +13,7 @@ class TokenForLogfile {
 // 토큰 정보가 저장될 배열
 const uuidIamwebList = {};
 const uuidDispatchList = {};
+const uuidError = {};
 
 @Controller()
 export class AppController {
@@ -77,6 +78,20 @@ export class AppController {
     );
   }
 
+  @Get('error_logfiles')
+  @Render('logErrorFiles')
+  async logErrorFileList(
+    @Query('token') token: string,
+    @Query('email') email: string,
+  ): Promise<any> {
+    return await this.getLogFile(
+      uuidError,
+      email,
+      token,
+      AutomationConfig.files.log.error.path,
+    );
+  }
+
   @Get('dispatchGeZtoken')
   async getTokenForDispatch(@Query('email') email: string) {
     const token = await this.makeTokenLogfile(email);
@@ -88,6 +103,13 @@ export class AppController {
   async getToken(@Query('email') email: string) {
     const token = await this.makeTokenLogfile(email);
     uuidIamwebList[email] = token;
+    return token.uuid;
+  }
+
+  @Get('errorTok2n')
+  async getTokenError(@Query('email') email: string) {
+    const token = await this.makeTokenLogfile(email);
+    uuidError[email] = token;
     return token.uuid;
   }
 }
