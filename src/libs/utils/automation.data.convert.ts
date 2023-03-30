@@ -3,6 +3,7 @@ import { DispatchStatus } from '../modes/dispatch.status';
 import { IamwebOrderGoogleModel } from '../modes/iamweb.order';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { IamwebUtils } from './iamweb.utils';
+import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 
 export class AutomationDataConvert {
   /**
@@ -42,14 +43,48 @@ export class AutomationDataConvert {
       '라이크어로컬', //H
       '010-9985-9547', // I
       productType, // J // 서비스명(편도/대절)
-      '-', // K - 대절시간
+      orderData.product_item.items.rentTime, // '-', // K - 대절시간
       orderData.orderer.name, // L'이용자명',
       '010-9985-9547', // M 이용자 연락처,
       `${boardingDate} ${boardingTime}`, // N'탑승일자', //'탑승시간',
       `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
-      `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // P'도착지위치명',, // '도착지주소',
-      boardingPersonCount, // Q '탐승인원',
-      dispatchStatus, // R
+      orderData.product_item.items.wayPoint, // P 경유지
+      `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // Q'도착지위치명',, // '도착지주소',
+      boardingPersonCount, // R '탐승인원',
+      dispatchStatus, // S
+    ];
+
+    return jsonNewData;
+  }
+
+  async convertDispathFromIamwebOrderStringToJson(
+    orderData: string,
+    cellNum: number,
+    dispatchStatus: DispatchStatus,
+  ): Promise<any[]> {
+    const formData: string[] = orderData.split(
+      AutomationConfig.sign.arrToStrDelim,
+    );
+
+    const jsonNewData = [
+      cellNum.toString(), // B '번호'
+      formData[9], // C 주문번호
+      formData[10], // D '결제일자' ,
+      formData[11], // E '결제시간',
+      '', // F 취소일자
+      '', // G 취소시간
+      '라이크어로컬', //H
+      '010-9985-9547', // I
+      formData[14], // J 서비스명(편도/대절)
+      formData[20], // orderData.product_item.items.rentTime, // '-', // K - 대절시간
+      formData[6], // orderData.orderer.name, // L'이용자명',
+      '010-9985-9547', // M 이용자 연락처,
+      `${formData[30]} ${formData[31]}`, // N'탑승일자', //'탑승시간',
+      formData[15] + '[' + formData[17] + ']', //  O `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
+      formData[19], // orderData.product_item.items.wayPoint, // P 경유지
+      formData[22] + '[' + formData[24] + ']', // Q `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // Q'도착지위치명',, // '도착지주소',
+      formData[29], // R '탐승인원',
+      dispatchStatus, // S
     ];
 
     return jsonNewData;
@@ -93,10 +128,13 @@ export class AutomationDataConvert {
       hh_mm_dd, //'결제시간',
       `${orderData.payment.total_price}(${orderData.payment.price_currency})`, //'결제금액',
       orderData.product_item.items.prod_name, // '상품명',
+      orderData.product_item.items.orderType, // '대절, 편도'
       orderData.product_item.items.startLocation, //'출발지 위치명',
       '출발지 위치명(관리자)',
       orderData.product_item.items.startAddress, //'출발지주소',
       '출발지주소(관리자)',
+      orderData.product_item.items.wayPoint, // 경유지
+      orderData.product_item.items.rentTime, // 대절시간
       orderData.product_item.items.endAirport, // '도착공항',
       orderData.product_item.items.endLocation, //'도착지위치명',
       '도착지위치명(관리자)',

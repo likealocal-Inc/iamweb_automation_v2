@@ -148,15 +148,14 @@ export class AutomationDispatchUtils {
    */
   async writeGoogleSheetDispatchInfoAndGetLineString(
     cellNum: number,
-    iamwebOrderdata: IamwebOrderGoogleModel,
+    iamwebOrderdata: string,
     dispatchStatus: DispatchStatus,
   ): Promise<string> {
     const jsonDispatchData =
-      await new AutomationDataConvert().convertDispathFromIamwebOrderModelToJson(
+      await new AutomationDataConvert().convertDispathFromIamwebOrderStringToJson(
         iamwebOrderdata,
         cellNum,
         dispatchStatus,
-        this.iamwebUtil,
       );
 
     // 작성할 셀 범위

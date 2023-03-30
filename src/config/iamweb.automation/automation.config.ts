@@ -33,11 +33,11 @@ export const AutomationConfig = {
       range: {
         order: {
           start: 'B',
-          end: 'AK',
+          end: 'AN',
         },
         log: {
           start: 'B',
-          end: 'AL',
+          end: 'AO',
         },
         status: {
           start: 'C',
@@ -50,16 +50,16 @@ export const AutomationConfig = {
       range: {
         order: {
           start: 'B',
-          end: 'Y',
+          end: 'Z',
         },
         log: {
           start: 'B',
-          end: 'Z',
+          end: 'AA',
         },
         status: {
-          start: 'R',
-          end: 'R',
-          arrIndex: 16,
+          start: 'S',
+          end: 'S',
+          arrIndex: 17,
         },
       },
     },

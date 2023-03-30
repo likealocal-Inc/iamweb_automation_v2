@@ -43,6 +43,9 @@ export class IamwebProductModel {
     endAddress: '',
     startAirport: '',
     endAirport: '',
+    wayPoint: '', // 경유지
+    rentTime: '', // 대절시간
+    orderType: '', // 대절/
   };
 
   constructor(data: any) {
@@ -84,40 +87,55 @@ export class IamwebProductModel {
     this.items.delivery.deliv_pay_type = items.delivery.deliv_pay_type;
     this.items.delivery.deliv_price_type = items.delivery.deliv_price_type;
 
-    // if (items.options !== undefined) {
-    //   const options = items.options[0][0].value_name_list;
+    if (items.options !== undefined) {
+      const options = items.options[0][0].value_name_list;
 
-    //   const productType = AutomationConfig.iamwebProductID;
+      const productType = AutomationConfig.iamwebProductID;
 
-    //   // 서울 -> 공항
-    //   if (this.items.prod_no.toString() === productType.sanding.toString()) {
-    //     this.items.startAddress = options[0];
-    //     this.items.startLocation = options[2];
-    //     this.items.endLocation = options[1];
-    //     this.items.endAddress = '';
-    //     this.items.startAirport = options[1];
-    //   }
-    //   // 공항 -> 서울
-    //   else if (
-    //     this.items.prod_no.toString() === productType.pickup.toString()
-    //   ) {
-    //     this.items.startAddress = '';
-    //     this.items.startLocation = options[1];
-    //     this.items.endLocation = options[0];
-    //     this.items.endAddress = options[2];
-    //     this.items.endAirport = options[1];
-    //   // }
-    //   // else if (
-    //     // this.items.prod_no.toString() === productType.tPrivateTaxi.toString()
-    //   // ) {
+      // 서울 -> 공항
+      if (
+        this.items.prod_no.toString() === productType.sanding.toString() ||
+        this.items.prod_no.toString() === productType.tSanding.toString()
+      ) {
+        this.items.startAddress = options[0];
+        this.items.startLocation = options[2];
+        this.items.endLocation = options[1];
+        this.items.endAddress = '';
+        this.items.startAirport = options[1];
+        this.items.wayPoint = '';
+        this.items.rentTime = '';
+        this.items.orderType = '편도';
+      }
+      // 공항 -> 서울
+      else if (
+        this.items.prod_no.toString() === productType.pickup.toString() ||
+        this.items.prod_no.toString() === productType.tPickup.toString()
+      ) {
+        this.items.startAddress = '';
+        this.items.startLocation = options[1];
+        this.items.endLocation = options[0];
+        this.items.endAddress = options[2];
+        this.items.endAirport = options[1];
+        this.items.wayPoint = '';
+        this.items.rentTime = '';
+        this.items.orderType = '편도';
 
-    //   // }
-    // } else {
-    //     this.items.startLocation = options[0];
-    //     this.items.startAddress = options[1];
-    //     this.items.endLocation = options[2];
-    //     this.items.endAddress = options[3];
-    // }
+        // }
+        // else if (
+        // this.items.prod_no.toString() === productType.tPrivateTaxi.toString()
+        // ) {
+
+        // }
+      } else {
+        this.items.startLocation = options[0]; // 출발지
+        this.items.wayPoint = options[1];
+        this.items.startAddress = ''; // options[1]; // 경유
+        this.items.endLocation = options[2]; // 목적지
+        this.items.rentTime = options[3];
+        this.items.endAddress = ''; //options[3]; // 대절시간
+        this.items.orderType = '대절';
+      }
+    }
   }
 }
 
