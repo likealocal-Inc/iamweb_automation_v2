@@ -66,7 +66,8 @@ export class AppScheduler {
   /**
    * 아임웹 주문 조회 -> 구글시트에 작성
    */
-  @Cron('0 10 * * * *')
+  @Cron('1 * * * * *')
+  // @Cron('0 10 * * * *')
   async iamwebOrderSearch() {
     const info = '아임웹 주문데이터 조회 -> 주문 구글시트 스케쥴';
     console.log(`----------- ${info} -------------`);
@@ -143,6 +144,7 @@ export class AppScheduler {
    * 아엠웹 구글시트로그 작성
    * @returns
    */
+  // @Cron('16 * * * * *')
   @Cron('0 25 * * * *')
   async iamwebOrderCheckChange() {
     const info = '아임웹 주문데이터 변경에 대한 로그처리 스케쥴';
@@ -243,6 +245,7 @@ export class AppScheduler {
   /**
    * 주문 -> 배차 시트에 작성
    */
+  // @Cron('31 * * * * *')
   @Cron('0 40 * * * *')
   async addDispatchSheetInGoogleSheet() {
     const info = '배차데이터 추가 스케쥴';
@@ -310,6 +313,7 @@ export class AppScheduler {
   /**
    * 배차 데이터 변경처리
    */
+  // @Cron('46 * * * * *')
   @Cron('0 55 * * * *')
   async dispatchChange() {
     const info =

@@ -107,17 +107,19 @@ export class IamwebUtils {
 
     const type = AutomationConfig.iamwebProductID;
 
+    let typeRes = '대절';
     switch (productNo) {
-      case type.privateTaxi:
-      case type.tPrivateTaxi:
-        return '대절';
       case type.pickup:
       case type.sanding:
       case type.tSanding:
       case type.tPickup:
-        return '편도';
+        typeRes = '편도';
+      // case type.privateTaxi:
+      // case type.tPrivateTaxi:
+      // default:
+      //   return '대절';
     }
-    return '상품번호오류';
+    return typeRes;
   }
 
   /**

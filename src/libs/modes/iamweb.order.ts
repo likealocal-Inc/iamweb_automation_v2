@@ -84,40 +84,40 @@ export class IamwebProductModel {
     this.items.delivery.deliv_pay_type = items.delivery.deliv_pay_type;
     this.items.delivery.deliv_price_type = items.delivery.deliv_price_type;
 
-    if (items.options !== undefined) {
-      const options = items.options[0][0].value_name_list;
+    // if (items.options !== undefined) {
+    //   const options = items.options[0][0].value_name_list;
 
-      const productType = AutomationConfig.iamwebProductID;
+    //   const productType = AutomationConfig.iamwebProductID;
 
-      // 서울 -> 공항
-      if (this.items.prod_no.toString() === productType.tSanding.toString()) {
-        this.items.startAddress = options[0];
-        this.items.startLocation = options[2];
-        this.items.endLocation = options[1];
-        this.items.endAddress = '';
-        this.items.startAirport = options[1];
-      }
-      // 공항 -> 서울
-      else if (
-        this.items.prod_no.toString() === productType.tPickup.toString()
-      ) {
-        this.items.startAddress = '';
-        this.items.startLocation = options[1];
-        this.items.endLocation = options[0];
-        this.items.endAddress = options[2];
-        this.items.endAirport = options[1];
-      } else if (
-        this.items.prod_no.toString() === productType.tPrivateTaxi.toString()
-      ) {
-        this.items.startLocation = options[0];
-        this.items.startAddress = options[1];
-        this.items.endLocation = options[2];
-        this.items.endAddress = options[3];
-      }
-    } else {
-      this.items.startLocation = '';
-      this.items.endLocation = '';
-    }
+    //   // 서울 -> 공항
+    //   if (this.items.prod_no.toString() === productType.sanding.toString()) {
+    //     this.items.startAddress = options[0];
+    //     this.items.startLocation = options[2];
+    //     this.items.endLocation = options[1];
+    //     this.items.endAddress = '';
+    //     this.items.startAirport = options[1];
+    //   }
+    //   // 공항 -> 서울
+    //   else if (
+    //     this.items.prod_no.toString() === productType.pickup.toString()
+    //   ) {
+    //     this.items.startAddress = '';
+    //     this.items.startLocation = options[1];
+    //     this.items.endLocation = options[0];
+    //     this.items.endAddress = options[2];
+    //     this.items.endAirport = options[1];
+    //   // }
+    //   // else if (
+    //     // this.items.prod_no.toString() === productType.tPrivateTaxi.toString()
+    //   // ) {
+
+    //   // }
+    // } else {
+    //     this.items.startLocation = options[0];
+    //     this.items.startAddress = options[1];
+    //     this.items.endLocation = options[2];
+    //     this.items.endAddress = options[3];
+    // }
   }
 }
 
