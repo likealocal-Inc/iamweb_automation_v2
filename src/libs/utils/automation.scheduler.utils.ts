@@ -11,6 +11,9 @@ type GoogleSheetRange = {
   end: string;
 };
 
+/**
+ *
+ */
 export class AutomationSchedulerUtils {
   slackUtil: SlackUtil;
   telegramUtil: TelegramUtils;

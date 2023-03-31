@@ -2,6 +2,10 @@ import { IamwebOrderInfo, LineNumber, DispatchInfo } from '@prisma/client';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { PrismaService } from '../../config/prisma/prisma.service';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
+
+/**
+ * 자동화 관련 DB CRUD
+ */
 export class AutomationDBUtils {
   /**
    * 각 시트의 라인넘버를 반환
@@ -23,7 +27,7 @@ export class AutomationDBUtils {
   }
 
   /**
-   *
+   * 상태값으로 주문 조회
    * @param prisma
    * @param where
    * @returns

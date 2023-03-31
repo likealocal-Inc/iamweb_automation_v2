@@ -23,6 +23,10 @@ export class AppScheduler {
   iamwebUtils: IamwebUtils;
   automationDbUtils: AutomationDBUtils;
 
+  /**
+   * 초기 호출일 경우 라인넘버 초기 세팅
+   * @returns
+   */
   async init() {
     // 구글 라인 넘버 정보 저장하는 table 세팅
     const numbers: LineNumber[] = await this.prisma.lineNumber.findMany();

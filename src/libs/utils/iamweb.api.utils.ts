@@ -39,6 +39,9 @@ import { ErrorLogUtils } from './error.log.utils';
 //   },
 // };
 
+/**
+ * 아임웹 API 호출 관련 유틸
+ */
 export class IamwebApiUtils {
   constructor(private readonly httpService: HttpService) {}
 

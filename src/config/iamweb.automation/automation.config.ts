@@ -1,5 +1,9 @@
 import { DispatchStatus } from '../../libs/modes/dispatch.status';
 import { DateUtil } from '../../libs/core/date.utils';
+
+/**
+ *
+ */
 export const AutomationConfig = {
   sign: {
     // 배열 -> 스트링 변환시 구분자

@@ -5,58 +5,17 @@ import { IamwebOrderStatus } from '../modes/iamweb.order.status';
 import { IamwebUtils } from './iamweb.utils';
 import { AutomationConfig } from '../../config/iamweb.automation/automation.config';
 
+/**
+ * 자동화 프로그램에 데이터 변환을 처리
+ */
 export class AutomationDataConvert {
   /**
-   * IamwebOrder 모델 -> Dispatch Json데이터로 변환
+   * DB에서 조회한 IamwebOrder주문데이터 -> Dispath데이터로 변환 (json)
    * @param orderData
    * @param cellNum
    * @param dispatchStatus
-   * @param iamwebUtils
    * @returns
    */
-  async convertDispathFromIamwebOrderModelToJson(
-    orderData: IamwebOrderGoogleModel,
-    cellNum: number,
-    dispatchStatus: DispatchStatus,
-    iamwebUtils: IamwebUtils,
-  ): Promise<any[]> {
-    const formData = orderData.form;
-
-    const yyyy_mm_dd = new DateUtil().YYYYMMDD(orderData.order_time, '-');
-    const hh_mm_dd = new DateUtil().HHMMSS(orderData.order_time, ':');
-
-    const productNo = orderData.product_item.items.prod_no;
-    const productType: string = await iamwebUtils.getProductType(
-      Number(productNo),
-    );
-
-    const boardingPersonCount = formData[2].value;
-    const boardingDate = formData[3].value;
-    const boardingTime = formData[4].value;
-    const jsonNewData = [
-      cellNum.toString(), // B '번호'
-      orderData.order_no, // C
-      yyyy_mm_dd, // D '결제일자' ,
-      hh_mm_dd, // E '결제시간',
-      '', // F 취소일자
-      '', // G 취소시간
-      '라이크어로컬', //H
-      '010-9985-9547', // I
-      productType, // J // 서비스명(편도/대절)
-      orderData.product_item.items.rentTime, // '-', // K - 대절시간
-      orderData.orderer.name, // L'이용자명',
-      '010-9985-9547', // M 이용자 연락처,
-      `${boardingDate} ${boardingTime}`, // N'탑승일자', //'탑승시간',
-      `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
-      orderData.product_item.items.wayPoint, // P 경유지
-      `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // Q'도착지위치명',, // '도착지주소',
-      boardingPersonCount, // R '탐승인원',
-      dispatchStatus, // S
-    ];
-
-    return jsonNewData;
-  }
-
   async convertDispathFromIamwebOrderStringToJson(
     orderData: string,
     cellNum: number,
@@ -91,7 +50,7 @@ export class AutomationDataConvert {
   }
 
   /**
-   *
+   * IamwegOrderModel -> IamwebOrder json으로 변환
    * @param orderData
    * @param cellNum
    * @param iamwebOrderStatus

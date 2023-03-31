@@ -8,6 +8,9 @@ import {
 
 let tokenString = '';
 
+/**
+ * 아임웹 주문 데이터 조회 유틸
+ */
 export class IamwebUtils {
   apiUtils: IamwebApiUtils;
   constructor(private readonly httpService: HttpService) {
@@ -97,6 +100,11 @@ export class IamwebUtils {
     return res['data'];
   }
 
+  /**
+   *
+   * @param productNo
+   * @returns
+   */
   async getProductType(productNo: number) {
     /**
      * 상품

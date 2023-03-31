@@ -1,5 +1,8 @@
 import * as TelegramBot from 'node-telegram-bot-api';
 
+/**
+ * 텔레그램 처리 유틸
+ */
 export class TelegramUtils {
   private bot: TelegramBot;
 
@@ -7,6 +10,10 @@ export class TelegramUtils {
     this.bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
   }
 
+  /**
+   * 텔레그램 채팅방 아이디를 얻기 위한 함수
+   * 해당 채팅방에 글을 쓰고 내가 마지막으로 쓴 텔레그램 방을 찾는 방법
+   */
   async getChatRoomId() {
     this.bot.getUpdates({ allowed_updates: ['message'] }).then((updates) => {
       console.log(updates);
@@ -20,6 +27,11 @@ export class TelegramUtils {
     });
   }
 
+  /**
+   * 메세지 전송
+   * @param chatId
+   * @param message
+   */
   async send(chatId: number, message: string) {
     try {
       await this.bot.sendMessage(chatId, message);

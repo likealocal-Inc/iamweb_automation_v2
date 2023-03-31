@@ -2,7 +2,7 @@ import { HttpService } from '@nestjs/axios';
 
 import { GoogleSheetUtils } from '../core/google.sheet.utils';
 import { SlackAlertType, SlackUtil } from '../core/slack.utils';
-import { LogUtil } from '../core/logfile.utils';
+import { LogFileUtil } from '../core/logfile.utils';
 import { IamwebOrderGoogleModel } from '../modes/iamweb.order';
 import { PrismaService } from '../../config/prisma/prisma.service';
 import { AutomationDBUtils } from './automation.db.utils';
@@ -14,8 +14,11 @@ import { IamwebOrderInfo, LineNumber } from '@prisma/client';
 import { DispatchStatus } from '../modes/dispatch.status';
 import { AutomationDispatchUtils } from './automation.dispatch.utils';
 
+/**
+ * 아임웹 주문관련 유틸
+ */
 export class AutomationIamwebOrderUtils {
-  logUtil: LogUtil;
+  logUtil: LogFileUtil;
   googleIamwebOrderUtil: GoogleSheetUtils;
   googleIamwebOrderLogUtil: GoogleSheetUtils;
   slackUtil: SlackUtil;
@@ -23,7 +26,7 @@ export class AutomationIamwebOrderUtils {
   automationSchedulerUtils: AutomationSchedulerUtils;
 
   constructor(private readonly httpService: HttpService) {
-    this.logUtil = new LogUtil();
+    this.logUtil = new LogFileUtil();
     this.googleIamwebOrderUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetIamwebOrderId(),
       AutomationConfig.googleSheet.googleSheetName.iamwebOrderInfo.getIamwebOrder(),

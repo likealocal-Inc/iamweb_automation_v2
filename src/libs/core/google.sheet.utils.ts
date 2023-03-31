@@ -9,6 +9,9 @@ export enum GoogleSheetDirecftion {
   ROWS = 'ROWS',
 }
 
+/**
+ * 구글 시트 처리 유틸
+ */
 export class GoogleSheetUtils {
   _googleSheet: sheets_v4.Sheets = null;
 

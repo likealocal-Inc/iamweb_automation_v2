@@ -12,6 +12,9 @@ export enum DateAddType {
   milliseconds = 'ms',
 }
 
+/**
+ * 날짜 및 시간처리 유틸
+ */
 export class DateUtil {
   date(day = ''): moment.Moment {
     return moment(day);

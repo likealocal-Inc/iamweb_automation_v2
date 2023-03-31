@@ -4,8 +4,7 @@ import { IamwebOrderInfo, DispatchInfo, LineNumber } from '@prisma/client';
 import { GoogleSheetUtils } from '../core/google.sheet.utils';
 import { IamwebUtils } from './iamweb.utils';
 import { SlackUtil, SlackAlertType } from '../core/slack.utils';
-import { LogUtil } from '../core/logfile.utils';
-import { IamwebOrderGoogleModel } from '../modes/iamweb.order';
+import { LogFileUtil } from '../core/logfile.utils';
 import { PrismaService } from '../../config/prisma/prisma.service';
 import { AutomationDBUtils } from './automation.db.utils';
 import { IamwebOrderStatus } from '../modes/iamweb.order.status';
@@ -15,8 +14,11 @@ import { AutomationDataConvert } from './automation.data.convert';
 import { AutomationSchedulerUtils } from './automation.scheduler.utils';
 import { AutomationIamwebOrderUtils } from './automation.iamweborder.utils';
 
+/**
+ *
+ */
 export class AutomationDispatchUtils {
-  logUtil: LogUtil;
+  logUtil: LogFileUtil;
   googleDispatchUtil: GoogleSheetUtils;
   slackUtil: SlackUtil;
   iamwebUtil: IamwebUtils;
@@ -25,7 +27,7 @@ export class AutomationDispatchUtils {
   googleDispatchLogUtil: GoogleSheetUtils;
 
   constructor(private readonly httpService: HttpService) {
-    this.logUtil = new LogUtil();
+    this.logUtil = new LogFileUtil();
 
     this.googleDispatchUtil = new GoogleSheetUtils(
       AutomationConfig.googleSheet.getGoogleSheetDispatchId(),

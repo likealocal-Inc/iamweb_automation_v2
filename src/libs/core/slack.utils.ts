@@ -7,6 +7,9 @@ export const SlackAlertType = {
   ERROR: process.env.SLACK_ERROR,
 };
 
+/**
+ * 슬랙에 알림처리 유틸
+ */
 export class SlackUtil {
   constructor(private readonly httpService: HttpService) {}
 

@@ -1,6 +1,9 @@
 import { FileUtil } from './files.utils';
 
-export class LogUtil {
+/**
+ * 로그파일처리 유틸
+ */
+export class LogFileUtil {
   // 로그파일 저장 경로
   file: FileUtil;
   constructor() {

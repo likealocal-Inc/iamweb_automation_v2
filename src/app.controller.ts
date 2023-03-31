@@ -2,7 +2,7 @@ import { Controller, Get, Query, Render } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AppService } from './app.service';
-import { LogUtil } from './libs/core/logfile.utils';
+import { LogFileUtil } from './libs/core/logfile.utils';
 import { AutomationConfig } from './config/iamweb.automation/automation.config';
 
 // 토큰 배열에 저장될 클래스 타입
@@ -39,7 +39,7 @@ export class AppController {
       return;
     }
 
-    const logFile = await new LogUtil().getLogFileList(path);
+    const logFile = await new LogFileUtil().getLogFileList(path);
     return { files: logFile };
   }
 
@@ -50,6 +50,12 @@ export class AppController {
     return token;
   }
 
+  /**
+   * 아임웹주문 로그파일 조회
+   * @param token
+   * @param email
+   * @returns
+   */
   @Get('iamweb_logfiles')
   @Render('logIamwebFiles')
   async logIamwebFileList(
@@ -64,6 +70,12 @@ export class AppController {
     );
   }
 
+  /**
+   * 배차 로그 조회
+   * @param token
+   * @param email
+   * @returns
+   */
   @Get('dispatch_logfiles')
   @Render('logDispatchFiles')
   async logDispatchFileList(
@@ -78,6 +90,12 @@ export class AppController {
     );
   }
 
+  /**
+   * 에러파일 로그 조회
+   * @param token
+   * @param email
+   * @returns
+   */
   @Get('error_logfiles')
   @Render('logErrorFiles')
   async logErrorFileList(
@@ -92,6 +110,11 @@ export class AppController {
     );
   }
 
+  /**
+   * 배차 토큰 발급
+   * @param email
+   * @returns
+   */
   @Get('dispatchGeZtoken')
   async getTokenForDispatch(@Query('email') email: string) {
     const token = await this.makeTokenLogfile(email);
@@ -99,6 +122,11 @@ export class AppController {
     return token.uuid;
   }
 
+  /**
+   * 아임웹주문 토큰 발긊
+   * @param email
+   * @returns
+   */
   @Get('iamwebTok2n')
   async getToken(@Query('email') email: string) {
     const token = await this.makeTokenLogfile(email);
@@ -106,6 +134,11 @@ export class AppController {
     return token.uuid;
   }
 
+  /**
+   * 에러 로그 토큰 발급
+   * @param email
+   * @returns
+   */
   @Get('errorTok2n')
   async getTokenError(@Query('email') email: string) {
     const token = await this.makeTokenLogfile(email);

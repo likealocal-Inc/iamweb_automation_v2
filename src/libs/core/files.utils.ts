@@ -1,3 +1,6 @@
+/**
+ * 파일 처리 유틸
+ */
 export class FileUtil {
   fs: any;
 
