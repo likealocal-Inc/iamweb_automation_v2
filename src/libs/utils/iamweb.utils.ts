@@ -101,7 +101,9 @@ export class IamwebUtils {
   }
 
   /**
-   *
+   * 상품번호 -> 대절/ 편도 조회
+   * 새로 추가 하는것이 대절일 경우 이대로 쓰면됨
+   * 새로 추가 하는 것이 편도일 경우 추가가 필요
    * @param productNo
    * @returns
    */

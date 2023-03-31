@@ -15,7 +15,7 @@ import { AutomationSchedulerUtils } from './automation.scheduler.utils';
 import { AutomationIamwebOrderUtils } from './automation.iamweborder.utils';
 
 /**
- *
+ * 배차 관련 처리 유틸
  */
 export class AutomationDispatchUtils {
   logUtil: LogFileUtil;

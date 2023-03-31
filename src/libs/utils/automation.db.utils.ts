@@ -40,7 +40,7 @@ export class AutomationDBUtils {
   }
 
   /**
-   *
+   * iamweb table ID로 배차 조회
    * @param prisma
    * @param iamwebOrderIds
    * @returns

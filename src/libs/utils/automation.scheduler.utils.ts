@@ -12,7 +12,7 @@ type GoogleSheetRange = {
 };
 
 /**
- *
+ * 공용 유틸리티
  */
 export class AutomationSchedulerUtils {
   slackUtil: SlackUtil;

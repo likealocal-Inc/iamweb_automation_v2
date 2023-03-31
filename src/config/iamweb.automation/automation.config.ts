@@ -2,7 +2,8 @@ import { DispatchStatus } from '../../libs/modes/dispatch.status';
 import { DateUtil } from '../../libs/core/date.utils';
 
 /**
- *
+ * 자동화 프로그램 환경설정
+ * 바뀔 수 없는 값을 따로 관리
  */
 export const AutomationConfig = {
   sign: {
