@@ -80,9 +80,9 @@ export class AutomationDataConvert {
       formData[6], // orderData.orderer.name, // L'이용자명',
       '010-9985-9547', // M 이용자 연락처,
       `${formData[30]} ${formData[31]}`, // N'탑승일자', //'탑승시간',
-      formData[15] + '[' + formData[17] + ']', //  O `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
+      formData[15] + ' [' + formData[17] + ']', //  O `${orderData.product_item.items.startLocation} ${orderData.product_item.items.startAddress}`, // O'출발지 위치명' '출발지주소',
       formData[19], // orderData.product_item.items.wayPoint, // P 경유지
-      formData[22] + '[' + formData[24] + ']', // Q `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // Q'도착지위치명',, // '도착지주소',
+      formData[22] + ' [' + formData[24] + ']', // Q `${orderData.product_item.items.endLocation} ${orderData.product_item.items.endAddress}`, // Q'도착지위치명',, // '도착지주소',
       formData[29], // R '탐승인원',
       dispatchStatus, // S
     ];

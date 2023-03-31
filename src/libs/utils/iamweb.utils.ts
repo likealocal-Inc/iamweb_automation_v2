@@ -259,7 +259,9 @@ export class IamwebUtils {
   async getOrderListFromIamweb(): Promise<IamwebOrderGoogleModel[]> {
     const today = new Date();
     const fromDay = new Date(today);
-    fromDay.setDate(today.getDate() - 20);
+    fromDay.setDate(
+      today.getDate() - Number(AutomationConfig.iamwebApi.orderSearchDays),
+    );
 
     // 주문리스트를 조회
     return await this.getIamwebOrderList(
