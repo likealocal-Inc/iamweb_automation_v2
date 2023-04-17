@@ -71,7 +71,7 @@ export class AppScheduler {
    * 아임웹 주문 조회 -> 구글시트에 작성
    */
   // @Cron('1 * * * * *')
-  @Cron('10 * * * * *')
+  @Cron('0 10 * * * *')
   async iamwebOrderSearch() {
     const info = '아임웹 주문데이터 조회 -> 주문 구글시트 스케쥴';
     console.log(`----------- ${info} -------------`);
@@ -81,7 +81,6 @@ export class AppScheduler {
       const iamwebOrderList: IamwebOrderGoogleModel[] =
         await this.iamwebUtils.getOrderListFromIamweb();
 
-      console.log(iamwebOrderList);
       // 주문데이터가 없을 경우 이후 작업 없음
       if (iamwebOrderList === undefined || iamwebOrderList.length === 0) {
         return;
@@ -150,7 +149,7 @@ export class AppScheduler {
    * @returns
    */
   // @Cron('16 * * * * *')
-  // @Cron('0 25 * * * *')
+  @Cron('0 25 * * * *')
   async iamwebOrderCheckChange() {
     const info = '아임웹 주문데이터 변경에 대한 로그처리 스케쥴';
     console.log(`----------- ${info} -------------`);
@@ -251,7 +250,7 @@ export class AppScheduler {
    * 주문 -> 배차 시트에 작성
    */
   // @Cron('31 * * * * *')
-  // @Cron('0 40 * * * *')
+  @Cron('0 40 * * * *')
   async addDispatchSheetInGoogleSheet() {
     const info = '배차데이터 추가 스케쥴';
     console.log(`----------- ${info} -------------`);
@@ -319,7 +318,7 @@ export class AppScheduler {
    * 배차 데이터 변경처리
    */
   // @Cron('46 * * * * *')
-  // @Cron('0 55 * * * *')
+  @Cron('0 55 * * * *')
   async dispatchChange() {
     const info =
       '배차데이터 변경에 따른 처리 -> 상태값에 따른 주문데이터 처리포함';
