@@ -82,7 +82,6 @@ export class AppScheduler {
         await this.iamwebUtils.getOrderListFromIamweb();
 
       console.log(iamwebOrderList);
-      return;
       // 주문데이터가 없을 경우 이후 작업 없음
       if (iamwebOrderList === undefined || iamwebOrderList.length === 0) {
         return;
