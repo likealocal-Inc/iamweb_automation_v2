@@ -21,7 +21,7 @@ export class IamwebUtils {
    * 액세스 토큰 조회
    * @returns
    */
-  async __getAcessToken(isNeedNew = false): Promise<string> {
+  async __getAcessToken(isNeedNew = true): Promise<string> {
     if (
       isNeedNew ||
       tokenString === null ||
